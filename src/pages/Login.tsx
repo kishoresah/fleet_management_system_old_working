@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth } from "../firebaseConfigTest";
 import { Link, useNavigate } from "react-router-dom";
 import { TextField, Button, Typography } from "@mui/material";
 import "../styles/auth.css";

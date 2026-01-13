@@ -8,7 +8,7 @@ import {
   Stack,
 } from "@mui/material";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "../../firebaseConfig";
+import { auth, db } from "../../firebaseConfigTest";
 import { useNavigate, useParams } from "react-router-dom";
 
 const AddDriverPayment: React.FC = () => {

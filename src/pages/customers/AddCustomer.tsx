@@ -15,7 +15,7 @@ import {
   getDocs,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
 import type Customer from "../../types/Customer";
 import { ownerLists } from "../../constants";

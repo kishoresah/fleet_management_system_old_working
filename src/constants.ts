@@ -4,4 +4,4 @@ export const ownerLists = [
     { uid: "3", displayName: "Ravi" },
 ]
 
-export const COMPANY_NAME = "Transport Services";
+export const COMPANY_NAME = "Prakash Transport Services";

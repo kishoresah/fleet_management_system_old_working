@@ -18,14 +18,19 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db, auth } from "../../firebaseConfig";
+import { db, auth } from "../../firebaseConfigTest";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { getownerName } from "../../utils";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 
 export default function CustomerList() {
   const [customers, setCustomers] = useState([]);
   const [search, setSearch] = useState("");
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteCustomerId, setDeleteCustomerId] = useState(null);
+
   const [filters, setFilters] = useState({
     name: "",
     city: "",
@@ -47,7 +52,7 @@ export default function CustomerList() {
 
   const deleteCustomer = async (id) => {
     const userRole = localStorage.getItem("role");
-    if (userRole != 1) return alert("Only Admin can delete customers");
+    // if (userRole != 1) return alert("Only Admin can delete customers");
 
     await deleteDoc(doc(db, "customers", id));
     setCustomers(customers.filter((c) => c.id !== id));
@@ -70,6 +75,29 @@ export default function CustomerList() {
 
     return matchesSearch && matchesFilters;
   });
+
+  const handleDeleteClick = (id) => {
+    //const role = localStorage.getItem("role");
+    setDeleteCustomerId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteCustomer = async () => {
+    try {
+      deleteCustomer(deleteCustomerId);
+    } catch (error) {
+      console.error("Delete failed", error);
+      alert("Failed to delete trip");
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteCustomerId(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteCustomerId(null);
+  };
 
   return (
     <Box sx={{ p: 1 }}>
@@ -211,7 +239,7 @@ export default function CustomerList() {
                   <Button
                     size="small"
                     color="error"
-                    onClick={() => deleteCustomer(c.id)}
+                    onClick={() => handleDeleteClick(c.id)}
                   >
                     Delete
                   </Button>
@@ -243,7 +271,7 @@ export default function CustomerList() {
 
                   <IconButton
                     color="error"
-                    onClick={() => deleteCustomer(c.id)}
+                    onClick={() => handleDeleteClick(c.id)}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -253,6 +281,14 @@ export default function CustomerList() {
           ))}
         </Box>
       )}
+
+      <DeleteConfirmModal
+        open={showDeleteModal}
+        title="Delete Customer"
+        message="Are you sure you want to delete this Customer? This action cannot be undone."
+        onConfirm={confirmDeleteCustomer}
+        onCancel={cancelDelete}
+      />
     </Box>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import { useNavigate, useParams } from "react-router-dom";
 import type Driver from "../../types/Driver";
 import DriverForm from "./DriverForm";

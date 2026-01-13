@@ -9,7 +9,7 @@ import {
   increment,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import { getAuth } from "firebase/auth";
 import { Box, Paper, Typography, TextField, Button } from "@mui/material";
 

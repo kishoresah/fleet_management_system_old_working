@@ -9,7 +9,8 @@ import {
   doc,
   deleteDoc,
 } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
+import { formatDateMMDDYYYY } from "../../utils";
 import {
   Table,
   TableHead,
@@ -45,6 +46,8 @@ export default function DriverPaymentListByDriver() {
 
     fetchDriverAndPayments();
   }, [driverId]);
+
+  console.log("Payments:", payments);
 
   const deletePayment = async (id: string) => {
     const userRole = localStorage.getItem("role");
@@ -83,7 +86,7 @@ export default function DriverPaymentListByDriver() {
             <TableRow key={p.id}>
               <TableCell>₹ {p.amount}</TableCell>
               <TableCell>
-                {p.date?.toDate ? p.date.toDate().toLocaleDateString() : "-"}
+                {p.paymentDate ? formatDateMMDDYYYY(p.paymentDate) : "-"}
               </TableCell>
               <TableCell>{p.paidBy}</TableCell>
               <TableCell>{p.comments || "-"}</TableCell>

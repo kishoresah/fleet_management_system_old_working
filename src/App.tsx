@@ -21,6 +21,9 @@ import DriverPaymentListByDriver from "./pages/drivers/DriverPaymentListByDriver
 import AddTrip from "./pages/dailyTrips/AddTrip";
 import TripList from "./pages/dailyTrips/TripList";
 import EditDailyTrip from "./pages/dailyTrips/EditTrip";
+import VehicleList from "./pages/vehicles/VehicleList";
+import AddVehicle from "./pages/vehicles/AddVehicle";
+import EditVehicle from "./pages/vehicles/EditVehicle";
 function App() {
   return (
     <Router>
@@ -48,6 +51,10 @@ function App() {
           <Route path="/drivers" element={<DriverList />} />
           <Route path="/add-driver" element={<AddDriver />} />
           <Route path="/edit-driver/:id" element={<EditDriver />} />
+
+          <Route path="/vehicleList" element={<VehicleList />} />
+          <Route path="/add-vehicle" element={<AddVehicle />} />
+          <Route path="/edit-vehicle/:id" element={<EditVehicle />} />
 
           <Route path="/invoices" element={<ListInvoices />} />
           <Route path="/add-invoice" element={<AddInvoice />} />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
-import { db, auth } from "../../firebaseConfig";
+import { db, auth } from "../../firebaseConfigTest";
 import {
   Button,
   Table,
@@ -10,10 +10,15 @@ import {
   TableBody,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { formatDateMMDDYYYY } from "../../utils";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 
 export default function DriverList() {
   const [drivers, setDrivers] = useState<any[]>([]);
   const navigate = useNavigate();
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteDriverId, setDeleteDriverId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,11 +29,32 @@ export default function DriverList() {
   }, []);
 
   const deleteDriver = async (id: string) => {
-    const userRole = localStorage.getItem("role");
-    if (userRole !== "1") return alert("Only Admin can delete drivers");
-
+    if (!id) return;
     await deleteDoc(doc(db, "drivers", id));
     setDrivers(drivers.filter((c) => c.id !== id));
+  };
+
+  const handleDeleteClick = (id) => {
+    //const role = localStorage.getItem("role");
+    setDeleteDriverId(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteDriver = async () => {
+    try {
+      deleteDriver(deleteDriverId);
+    } catch (error) {
+      console.error("Delete failed", error);
+      alert("Failed to delete trip");
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteDriverId(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteDriverId(null);
   };
 
   return (
@@ -60,7 +86,9 @@ export default function DriverList() {
               <TableCell>₹ {d.salary || "-"}</TableCell>
               <TableCell>
                 {d.joiningDate
-                  ? new Date(d.joiningDate.seconds * 1000).toLocaleDateString()
+                  ? formatDateMMDDYYYY(
+                      new Date(d.joiningDate).toLocaleDateString()
+                    )
                   : "-"}
               </TableCell>
               <TableCell>
@@ -74,7 +102,7 @@ export default function DriverList() {
                 <Button
                   size="small"
                   color="error"
-                  onClick={() => deleteDriver(d.id)}
+                  onClick={() => handleDeleteClick(d.id)}
                 >
                   Delete
                 </Button>{" "}
@@ -97,6 +125,14 @@ export default function DriverList() {
           ))}
         </TableBody>
       </Table>
+
+      <DeleteConfirmModal
+        open={showDeleteModal}
+        title="Delete Driver"
+        message="Are you sure you want to delete this Driver? This action cannot be undone."
+        onConfirm={confirmDeleteDriver}
+        onCancel={cancelDelete}
+      />
     </div>
   );
 }

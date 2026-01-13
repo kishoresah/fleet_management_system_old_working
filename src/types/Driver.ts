@@ -1,4 +1,5 @@
 export default interface Driver {
+    emergencyPhone: string;
     name: string;
     licenseNumber: string;
     phone: string;

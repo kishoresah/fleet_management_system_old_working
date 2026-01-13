@@ -4,30 +4,30 @@ import {
   addDoc,
   serverTimestamp,
   getDocs,
-  setDoc,
+  updateDoc,
+  doc,
+  runTransaction,
 } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
-import type Invoice from "../../types/Invoice";
 import InvoiceForm from "./InvoiceForm";
-import { doc, runTransaction } from "firebase/firestore";
-import { makeAllCaps } from "../../utils";
 
 const AddInvoice = () => {
   const navigate = useNavigate();
+
   const [customers, setCustomers] = useState<any[]>([]);
+  const [selectedTrips, setSelectedTrips] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [formData, setFormData] = useState({
     customerName: "",
-    vechileNumber: "",
     isGST: false,
-    items: [{ description: "", quantity: 1, price: 0, total: 0 }],
     subtotal: 0,
     finalTotal: 0,
-    paymentStatus: "unpaid", // NEW
   });
 
   useEffect(() => {
-    const load = async () => {
+    const loadCustomers = async () => {
       const data = await getDocs(collection(db, "customers"));
       setCustomers(
         data.docs.map((d) => ({
@@ -37,82 +37,63 @@ const AddInvoice = () => {
         }))
       );
     };
-    load();
+
+    loadCustomers();
   }, []);
 
-  const onChange = (e: any) => {
-    let value =
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value =
       e.target.name === "isGST" ? e.target.value === "yes" : e.target.value;
 
-    if (e.target.name == "vechileNumber") {
-      value = makeAllCaps(value);
-    }
-
-    setFormData({ ...formData, [e.target.name]: value });
-  };
-
-  const onItemChange = (i: number, field: string, value: any) => {
-    const items = [...formData.items];
-    items[i][field] = value;
-    items[i].total = items[i].price;
-    setFormData({ ...formData, items });
-  };
-
-  const addItem = () =>
-    setFormData({
-      ...formData,
-      items: [
-        ...formData.items,
-        { description: "", quantity: 1, price: 0, total: 0 },
-      ],
-    });
-  const removeItem = (i: number) =>
-    setFormData({
-      ...formData,
-      items: formData.items.filter((_, idx) => idx !== i),
-    });
-  const calculateTotals = () => {
-    const subtotal = formData.items.reduce((sum, item) => sum + item.total, 0);
-    const finalTotal = subtotal;
-    const amountPending = subtotal;
-
-    setFormData((prev) => ({
-      ...prev,
-      subtotal,
-      finalTotal,
-      amountPending,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: value }));
   };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    calculateTotals();
+    setIsSubmitting(true);
 
     try {
+      // Generate invoice number
       const counterRef = doc(db, "settings", "invoiceCounter");
 
       const lorryNo = await runTransaction(db, async (transaction) => {
-        const counterDoc = await transaction.get(counterRef);
-        let newNumber = 1000;
-        if (counterDoc.exists()) {
-          newNumber = (counterDoc.data().lorryNo || 1000) + 1;
-        }
+        const snap = await transaction.get(counterRef);
+        const newNumber = snap.exists()
+          ? (snap.data().lorryNo || 1000) + 1
+          : 1001;
+
         transaction.set(counterRef, { lorryNo: newNumber }, { merge: true });
         return newNumber;
       });
 
-      await addDoc(collection(db, "invoices"), {
+      const obj = {
         ...formData,
-        totalPaid: 0, // start 0
-        totalPending: formData.finalTotal,
+        subtotal: Number(formData.subtotal) || 0,
+        finalTotal: Number(formData.finalTotal) || 0,
+        totalPaid: 0,
+        totalPending: Number(formData.finalTotal) || 0,
         paymentStatus: "unpaid",
         lorryNo,
         createdAt: serverTimestamp(),
-      });
+      };
+      console.log("Saving invoice:", obj);
 
+      await addDoc(collection(db, "invoices"), obj);
+
+      await markTripsAsInvoiced();
       navigate("/invoices");
-    } catch (err) {
-      console.error("Failed to generate invoice number:", err);
+    } catch (error) {
+      console.error("Failed to save invoice:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const markTripsAsInvoiced = async () => {
+    for (const tripId of selectedTrips) {
+      await updateDoc(doc(db, "dailyTrips", tripId), {
+        invoiceCreated: "yes",
+      });
     }
   };
 
@@ -123,12 +104,11 @@ const AddInvoice = () => {
         formData={formData}
         customers={customers}
         onChange={onChange}
-        onItemChange={onItemChange}
-        addItem={addItem}
-        removeItem={removeItem}
-        calculateTotals={calculateTotals}
         onSubmit={onSubmit}
         submitText="Save Invoice"
+        selectedTrips={selectedTrips}
+        setSelectedTrips={setSelectedTrips}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

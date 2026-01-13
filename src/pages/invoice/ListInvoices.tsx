@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
 import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
 
 export default function ListInvoices() {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     getDocs(collection(db, "invoices")).then((snap) =>
@@ -14,12 +15,29 @@ export default function ListInvoices() {
     );
   }, []);
 
-  const sendWhatsAppReminder = (inv: any) => {
-    const message = `Hello ${
-      inv.customerName
-    }, Pending balance for invoice number ${inv.lorryNo} is ₹${
-      inv.totalPending
-    }. Last payment date ${
+  useEffect(() => {
+    const loadCustomers = async () => {
+      const snap = await getDocs(collection(db, "customers"));
+
+      const map: Record<string, string> = {};
+      snap.docs.forEach((doc) => {
+        map[doc.id] = doc.data().name;
+      });
+
+      setCustomerMap(map);
+    };
+
+    loadCustomers();
+  }, []);
+
+  const getCustomerNameById = (id: string) => {
+    return customerMap[id] || "—";
+  };
+
+  const sendWhatsAppReminder = (inv: any, name: string) => {
+    const message = `Hello ${name}, Pending balance for invoice number ${
+      inv.lorryNo
+    } is ₹${inv.totalPending}. Last payment date ${
       inv.lastPaymentDate?.toDate
         ? inv.lastPaymentDate.toDate().toLocaleDateString()
         : "-"
@@ -30,9 +48,9 @@ export default function ListInvoices() {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
   };
 
-  const sendGmailReminder = (inv: any) => {
+  const sendGmailReminder = (inv: any, name: string) => {
     const subject = `Payment Reminder: Invoice #${inv.lorryNo} amount due ₹${inv.totalPending}`;
-    const body = `Hello ${inv.customerName},
+    const body = `Hello ${name},
 
 This is a gentle reminder that the pending balance for your invoice #${
       inv.lorryNo
@@ -84,13 +102,13 @@ Phone: +91-9540670670`;
 
         <tbody>
           {invoices.map((inv) => {
-            const isPaid = inv.totalPaid >= inv.finalTotal;
+            const isPaid = inv.totalPaid >= inv.tripBillAmount;
 
             return (
               <tr key={inv.id}>
                 <td>{inv.lorryNo}</td>
-                <td>{inv.customerName}</td>
-                <td>₹ {inv.finalTotal}</td>
+                <td>{getCustomerNameById(inv.customerName)}</td>
+                <td>₹ {inv.tripBillAmount}</td>
                 <td>₹ {inv.totalPaid}</td>
                 <td>₹ {inv.totalPending}</td>
 
@@ -99,7 +117,7 @@ Phone: +91-9540670670`;
                   {inv.totalPaid === 0 && (
                     <span className="badge red">Unpaid</span>
                   )}
-                  {inv.totalPaid > 0 && inv.totalPaid < inv.finalTotal && (
+                  {inv.totalPaid > 0 && inv.totalPaid < inv.tripBillAmount && (
                     <span className="badge orange">Partial</span>
                   )}
                   {isPaid && <span className="badge green">Paid</span>}
@@ -124,7 +142,12 @@ Phone: +91-9540670670`;
                   {!isPaid && (
                     <>
                       <button
-                        onClick={() => sendWhatsAppReminder(inv)}
+                        onClick={() =>
+                          sendWhatsAppReminder(
+                            inv,
+                            getCustomerNameById(inv.customerName)
+                          )
+                        }
                         style={{
                           backgroundColor: "#25D366",
                           color: "white",
@@ -143,7 +166,12 @@ Phone: +91-9540670670`;
                       </button>
 
                       <button
-                        onClick={() => sendGmailReminder(inv)}
+                        onClick={() =>
+                          sendGmailReminder(
+                            inv,
+                            getCustomerNameById(inv.customerName)
+                          )
+                        }
                         style={{
                           backgroundColor: "#EA4335",
                           color: "white",

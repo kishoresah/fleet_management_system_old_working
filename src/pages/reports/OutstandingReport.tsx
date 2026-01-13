@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import { FaWhatsapp, FaEnvelope } from "react-icons/fa"; // ✅ Added icons
 
 export default function OutstandingReport() {

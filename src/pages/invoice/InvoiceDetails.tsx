@@ -7,7 +7,7 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import { useEffect, useState } from "react";
 
 export default function InvoiceDetails() {
@@ -34,7 +34,7 @@ export default function InvoiceDetails() {
     <div>
       <h2>Invoice #{invoice.lorryNo}</h2>
       <p>Customer: {invoice.customerName}</p>
-      <p>Total: ₹ {invoice.finalTotal}</p>
+      <p>Total: ₹ {invoice.tripBillAmount}</p>
       <p>Paid: ₹ {invoice.totalPaid}</p>
       <p>Pending: ₹ {invoice.totalPending}</p>
 

@@ -1,13 +1,5 @@
-import React from "react";
-import {
-  Box,
-  Grid,
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-} from "@mui/material";
+import React, { useState } from "react";
+import { locations } from "../../location";
 
 export default function TripForm({
   formData,
@@ -15,24 +7,32 @@ export default function TripForm({
   drivers,
   onChange,
   onCustomerChange,
+  onVehicleChange,
   onSubmit,
   submitText,
+  isSubmitting,
 }) {
-  return (
-    <Box sx={{ maxWidth: 900, mx: "auto", p: 2 }}>
-      <Card sx={{ p: 1 }}>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Add Trip
-          </Typography>
+  const [fromSuggestions, setFromSuggestions] = useState([]);
+  const [toSuggestions, setToSuggestions] = useState([]);
 
-          <Box component="form" onSubmit={onSubmit}>
-            <Grid container spacing={2}>
-              {/* CUSTOMER */}
-              <Grid item xs={12} md={6}>
-                <label className="label">Select Customer</label>
+  const filterLocations = (value) => {
+    if (!value) return [];
+    return locationOptions.filter((loc) => loc.includes(value.toUpperCase()));
+  };
+
+  const locationOptions = [
+    ...new Set(locations.flat().map((l) => l.trim().toUpperCase())),
+  ];
+  return (
+    <div className="trip-container">
+      <div className="trip-card">
+        <form onSubmit={onSubmit}>
+          <div className="grid">
+            {/* CUSTOMER */}
+            <div className="form-row">
+              <div className="form-group">
+                <label>Select Customer</label>
                 <select
-                  className="full-select"
                   name="customerId"
                   value={formData.customerId}
                   onChange={onCustomerChange}
@@ -44,13 +44,59 @@ export default function TripForm({
                     </option>
                   ))}
                 </select>
-              </Grid>
+              </div>
 
-              {/* DRIVER */}
-              <Grid item xs={12} md={6}>
-                <label className="label">Select Driver</label>
+              <div className="or-text">OR</div>
+
+              <div className="form-group">
+                <label>Customer Name</label>
+                <input
+                  type="text"
+                  name="localCustomerName"
+                  value={formData.localCustomerName}
+                  onChange={onChange}
+                  placeholder="Enter customer name"
+                />
+              </div>
+            </div>
+
+            {/* VEHICLE */}
+            <div className="form-row">
+              <div className="form-group">
+                <label>Select Vehicle</label>
                 <select
-                  className="full-select"
+                  name="vehicleId"
+                  value={formData.vehicleId || ""}
+                  onChange={onVehicleChange}
+                >
+                  <option value="">Select</option>
+                  {formData.vehicles?.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.vehicleNumber}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="or-text">OR</div>
+
+              <div className="form-group">
+                <label>Vehicle Number</label>
+                <input
+                  type="text"
+                  name="vehicleNumber"
+                  value={formData.vehicleNumber || ""}
+                  onChange={onChange}
+                  placeholder="Enter vehicle number"
+                />
+              </div>
+            </div>
+
+            {/* DRIVER */}
+            <div className="form-row">
+              <div className="form-group itexts">
+                <label>Select Driver</label>
+                <select
                   name="driverId"
                   value={formData.driverId}
                   onChange={onChange}
@@ -62,74 +108,155 @@ export default function TripForm({
                     </option>
                   ))}
                 </select>
-              </Grid>
+              </div>
 
-              {/* FROM LOCATION */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="From Location"
+              <div className="form-group">
+                <label>Trip Commission</label>
+                <input
+                  type="text"
+                  name="tripCommission"
+                  value={formData.tripCommission}
+                  onChange={onChange}
+                />
+              </div>
+            </div>
+
+            {/* Trip Details */}
+            <div className="form-row">
+              <div className="form-group">
+                <label>Trip Expense</label>
+                <input
+                  type="text"
+                  name="tripExpense"
+                  value={formData.tripExpense}
+                  onChange={onChange}
+                />
+              </div>
+              <div className="form-group">
+                <label>Bill Amount (₹)</label>
+                <input
+                  type="number"
+                  name="tripCharges"
+                  value={formData.tripCharges}
+                  onChange={onChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Freight</label>
+                <input
+                  type="text"
+                  name="tripGoods"
+                  value={formData.tripGoods}
+                  onChange={onChange}
+                />
+              </div>
+              <div className="form-group">
+                <label>Trip Date</label>
+                <input
+                  type="date"
+                  name="addTripDate"
+                  value={formData.addTripDate}
+                  onChange={onChange}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group autocomplete">
+                <label>From Location</label>
+                <input
+                  required
+                  type="text"
                   name="fromLocation"
-                  fullWidth
-                  size="small"
                   value={formData.fromLocation}
-                  onChange={onChange}
+                  onChange={(e) => {
+                    onChange(e);
+                    setFromSuggestions(filterLocations(e.target.value));
+                  }}
+                  onBlur={() => setFromSuggestions([])}
                 />
-              </Grid>
 
-              {/* TO LOCATION */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="To Location"
+                {fromSuggestions.length > 0 && (
+                  <ul className="suggestions">
+                    {fromSuggestions.map((loc) => (
+                      <li
+                        key={loc}
+                        onMouseDown={() => {
+                          onChange({
+                            target: { name: "fromLocation", value: loc },
+                          });
+                          setFromSuggestions([]);
+                        }}
+                      >
+                        {loc}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="form-group autocomplete">
+                <label>To Location</label>
+                <input
+                  type="text"
+                  required
                   name="toLocation"
-                  fullWidth
-                  size="small"
                   value={formData.toLocation}
-                  onChange={onChange}
+                  onChange={(e) => {
+                    onChange(e);
+                    setToSuggestions(filterLocations(e.target.value));
+                  }}
+                  onBlur={() => setToSuggestions([])}
                 />
-              </Grid>
 
-              {/* CONSIGNOR GST */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Consignor GST No."
+                {toSuggestions.length > 0 && (
+                  <ul className="suggestions">
+                    {toSuggestions.map((loc) => (
+                      <li
+                        key={loc}
+                        onMouseDown={() => {
+                          onChange({
+                            target: { name: "toLocation", value: loc },
+                          });
+                          setToSuggestions([]);
+                        }}
+                      >
+                        {loc}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Consignor GST No.</label>
+                <input
+                  type="text"
                   name="consignorGST"
-                  fullWidth
-                  size="small"
                   value={formData.consignorGST}
                   onChange={onChange}
                 />
-              </Grid>
-
-              {/* CONSIGNEE GST */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Consignee GST No."
+              </div>
+              <div className="form-group">
+                <label>Consignee GST No.</label>
+                <input
+                  type="text"
                   name="consigneeGST"
-                  fullWidth
-                  size="small"
                   value={formData.consigneeGST}
                   onChange={onChange}
                 />
-              </Grid>
+              </div>
+            </div>
 
-              {/* INVOICE VALUE */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Invoice Value Amount"
-                  type="number"
-                  name="invoiceValue"
-                  fullWidth
-                  size="small"
-                  value={formData.invoiceValue}
-                  onChange={onChange}
-                />
-              </Grid>
-
-              {/* CREATE BILTY */}
-              <Grid item xs={12} md={6}>
-                <label className="label">Create Bilty</label>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Create Bilty</label>
                 <select
-                  className="full-select"
                   name="createBilty"
                   value={formData.createBilty}
                   onChange={onChange}
@@ -137,29 +264,41 @@ export default function TripForm({
                   <option value="No">No</option>
                   <option value="Yes">Yes</option>
                 </select>
-              </Grid>
+              </div>
 
-              {/* LORRY NUMBER */}
-              <Grid item xs={12}>
-                <TextField
-                  label="Lorry No (Auto)"
-                  fullWidth
-                  size="small"
-                  value={formData.lorryNo}
-                  disabled
+              {formData.createBilty === "Yes" && (
+                <div className="form-group full-width">
+                  <label>Lorry No (Auto)</label>
+                  <input type="text" value={formData.lorryNo} disabled />
+                </div>
+              )}
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Special Note</label>
+                <input
+                  type="text"
+                  name="specialNotes"
+                  value={formData.specialNotes}
+                  onChange={onChange}
                 />
-              </Grid>
+              </div>
+            </div>
 
-              {/* SUBMIT BUTTON */}
-              <Grid item xs={12}>
-                <Button variant="contained" fullWidth type="submit">
-                  {submitText}
-                </Button>
-              </Grid>
-            </Grid>
-          </Box>
-        </CardContent>
-      </Card>
-    </Box>
+            {/* Submit */}
+            <div className="form-row">
+              <button
+                type="submit"
+                className="submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Saving..." : submitText}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

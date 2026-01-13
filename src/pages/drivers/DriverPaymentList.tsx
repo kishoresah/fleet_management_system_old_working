@@ -6,7 +6,7 @@ import {
   getDoc,
   deleteDoc,
 } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import {
   Button,
   Table,

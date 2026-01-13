@@ -14,7 +14,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth } from "../firebaseConfigTest";
 import { useTheme } from "@mui/material/styles";
 import { useState } from "react";
 import { COMPANY_NAME } from "../constants";
@@ -100,6 +100,15 @@ export default function DashboardLayout() {
         onClick={() => isMobile && setMobileOpen(false)}
       >
         <ListItemText primary="Due Payment" />
+      </ListItem>
+
+      <ListItem
+        button
+        component={Link}
+        to="/vehicleList"
+        onClick={() => isMobile && setMobileOpen(false)}
+      >
+        <ListItemText primary="VehicleList" />
       </ListItem>
     </List>
   );

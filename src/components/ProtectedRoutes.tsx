@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { auth } from "../firebaseConfig";
+import { auth } from "../firebaseConfigTest";
 //import { useAuthState } from "react-firebase-hooks/auth";
 import { ReactNode } from "react";
 

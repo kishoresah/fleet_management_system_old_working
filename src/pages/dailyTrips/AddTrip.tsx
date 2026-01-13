@@ -5,7 +5,7 @@ import {
   getDocs,
   serverTimestamp,
 } from "firebase/firestore";
-import { db, auth } from "../../firebaseConfig";
+import { db, auth } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
 import TripForm from "./TripForm";
 
@@ -14,19 +14,30 @@ export default function AddDailyTrip() {
 
   const [customers, setCustomers] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     customerId: "",
+    localCustomerName: "",
+    vehicleId: "", // selected vehicle
+    vehicleNumber: "", // manual input
+    tripExpense: "",
+    tripCharges: "",
+    tripCommission: "",
+    tripGoods: "",
     driverId: "",
     fromLocation: "",
     toLocation: "",
     consignorGST: "",
     consigneeGST: "",
-    invoiceValue: "",
     createBilty: "No",
     lorryNo: "",
     addedBy: "",
     addedDate: "",
+    specialNotes: "",
+    addTripDate: "",
+    paymentStatus: "unpaid",
   });
 
   // Fetch customers
@@ -43,18 +54,34 @@ export default function AddDailyTrip() {
     );
   }, []);
 
-  // Auto increment lorryNo
+  // Fetch vehicles
   useEffect(() => {
-    const load = async () => {
+    getDocs(collection(db, "vehicles")).then((snap) =>
+      setVehicles(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    );
+  }, []);
+
+  useEffect(() => {
+    if (formData.createBilty !== "Yes") {
+      setFormData((p) => ({ ...p, lorryNo: "" }));
+      return;
+    }
+
+    const loadLorryNo = async () => {
       const snap = await getDocs(collection(db, "dailyTrips"));
       const all = snap.docs.map((d) => d.data());
       const maxNo = all.length
-        ? Math.max(...all.map((t) => t.lorryNo || 0))
+        ? Math.max(...all.map((t) => t.lorryNo || 1000))
         : 1000;
-      setFormData((p) => ({ ...p, lorryNo: maxNo + 1 }));
+
+      setFormData((p) => ({
+        ...p,
+        lorryNo: maxNo + 1,
+      }));
     };
-    load();
-  }, []);
+
+    loadLorryNo();
+  }, [formData.createBilty]);
 
   // Logged in user
   useEffect(() => {
@@ -62,6 +89,8 @@ export default function AddDailyTrip() {
     setFormData((p) => ({
       ...p,
       addedBy: user?.email || "",
+      paymentStatus: "unpaid",
+      invoiceCreated: "no",
       addedDate: new Date().toLocaleString(),
     }));
   }, []);
@@ -77,17 +106,50 @@ export default function AddDailyTrip() {
       ...p,
       customerId: id,
       consignorGST: selected?.gstNumber || "",
-      consigneeGST: selected?.gstNumber || "",
+    }));
+  };
+
+  const handleVehicleChange = (e) => {
+    const id = e.target.value;
+    const selected = vehicles.find((v) => v.id === id);
+    setFormData((p) => ({
+      ...p,
+      vehicleId: id,
+      vehicleNumber: selected?.vehicleNumber || "",
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addDoc(collection(db, "dailyTrips"), {
-      ...formData,
-      createdAt: serverTimestamp(),
-    });
-    navigate("/trip-list");
+
+    // if (isSubmitting) return; // safety guard
+    setIsSubmitting(true);
+
+    try {
+      console.log("Submitting form data:", formData);
+      // Decide final vehicle number
+      const finalVehicleNumber = formData.vehicleId
+        ? vehicles.find((v) => v.id === formData.vehicleId)?.vehicleNumber
+        : formData.vehicleNumber;
+
+      try {
+        const docRef = await addDoc(collection(db, "dailyTrips"), {
+          ...formData,
+          vehicleNumber: finalVehicleNumber,
+          createdAt: serverTimestamp(),
+        });
+
+        console.log("Document written with ID:", docRef.id);
+      } catch (error) {
+        console.error("Error adding document:", error);
+        // alert(error.message); // optional UI feedback
+      }
+
+      navigate("/trip-list");
+    } catch (error) {
+      console.error("Failed to save trip", error);
+      setIsSubmitting(false); // re-enable if error
+    }
   };
 
   return (
@@ -95,11 +157,13 @@ export default function AddDailyTrip() {
       <h2>Add Daily Trip</h2>
 
       <TripForm
-        formData={formData}
+        formData={{ ...formData, vehicles }}
+        isSubmitting={isSubmitting}
         customers={customers}
         drivers={drivers}
         onChange={handleChange}
         onCustomerChange={handleCustomerChange}
+        onVehicleChange={handleVehicleChange} // new
         onSubmit={handleSubmit}
         submitText="Save Trip"
       />

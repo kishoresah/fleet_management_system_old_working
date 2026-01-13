@@ -6,7 +6,7 @@ import {
   getDocs,
   collection,
 } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
+import { db } from "../../firebaseConfigTest";
 import { useNavigate, useParams } from "react-router-dom";
 import type Invoice from "../../types/Invoice";
 import InvoiceForm from "./InvoiceForm";
