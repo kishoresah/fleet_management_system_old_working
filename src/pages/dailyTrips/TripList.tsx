@@ -9,7 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
-import downloadBiltyPDF from "./generatepdf1";
+import downloadBiltyPDF from "./generatepdfreports";
 import { formatDateMMDDYYYY } from "../../utils";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 
@@ -20,21 +20,22 @@ export default function TripList() {
   const [customers, setCustomers] = useState([]);
   const [drivers, setDrivers] = useState([]);
 
-  const today = new Date().toISOString().substring(0, 10);
-
   // Filters
-  const [filterCustomer, setFilterCustomer] = useState("");
+  const [filterCustomer, setFilterCustomer] = useState(() => {
+    return localStorage.getItem("filterCustomer") || "";
+  });
   const [localCustomerName, setLocalCustomerName] = useState("");
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTripId, setDeleteTripId] = useState(null);
 
   const [filterDriver, setFilterDriver] = useState("");
+  const [filterVehicles, setFilterVehicles] = useState("");
   const [filterLorryNo, setFilterLorryNo] = useState("");
   const [filterDate, setFilterDate] = useState("");
-
+  const [vehicles, setVehicles] = useState([]);
   // Pagination
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 20;
   const [currentPage, setCurrentPage] = useState(1);
 
   // Date range filters
@@ -45,17 +46,13 @@ export default function TripList() {
     loadTrips();
     loadCustomers();
     loadDrivers();
+    loadVehicles();
   }, []);
 
-  /* const loadTrips = async () => {
-    const q = query(collection(db, "dailyTrips"), orderBy("lorryNo", "desc"));
-    const snap = await getDocs(q);
-    setTrips(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  };*/
   const loadTrips = async () => {
     const q = query(
       collection(db, "dailyTrips"),
-      orderBy("addTripDate", "desc") // 🔥 latest first
+      orderBy("addTripDate", "desc"), // 🔥 latest first
     );
 
     const snap = await getDocs(q);
@@ -72,14 +69,9 @@ export default function TripList() {
     setDrivers(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
-  const deleteTrip = async (id) => {
-    const role = localStorage.getItem("role");
-    if (role !== "1") {
-      alert("Only Admin can delete Trips");
-      return;
-    }
-    await deleteDoc(doc(db, "dailyTrips", id));
-    setTrips(trips.filter((t) => t.id !== id));
+  const loadVehicles = async () => {
+    const snap = await getDocs(collection(db, "vehicles"));
+    setVehicles(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   };
 
   const handleDeleteClick = (id) => {
@@ -87,6 +79,7 @@ export default function TripList() {
     setDeleteTripId(id);
     setShowDeleteModal(true);
   };
+  const handlePushInvoicClick = (id) => {};
 
   const confirmDeleteTrip = async () => {
     try {
@@ -101,37 +94,54 @@ export default function TripList() {
     }
   };
 
+  useEffect(() => {
+    localStorage.setItem("filterCustomer", filterCustomer);
+  }, [filterCustomer]);
+
   const cancelDelete = () => {
     setShowDeleteModal(false);
     setDeleteTripId(null);
   };
-
-  // Filtering logic
+  console.log("trips ", trips);
   const filteredTrips = trips.filter((t) => {
-    const tripDate = t.addTripDate?.substring(0, 10); // yyyy-mm-dd
+    const tripDate = t.addTripDate?.substring(0, 10);
 
-    console.log("Trip Date:", tripDate, "Filter Date:", filterDate);
     const isWithinDateRange =
       (!fromDate || tripDate >= fromDate) && (!toDate || tripDate <= toDate);
 
+    let customerMatch = true;
+
+    if (filterCustomer === "OTHER") {
+      customerMatch = !t.customerId && t.localCustomerName;
+    } else if (filterCustomer === "OTHER_PAID") {
+      customerMatch =
+        !t.customerId && t.localCustomerName && t.paymentStatus === "Paid";
+    } else if (filterCustomer === "OTHER_UNPAID") {
+      customerMatch =
+        !t.customerId && t.localCustomerName && t.paymentStatus === "unpaid";
+    } else if (filterCustomer) {
+      customerMatch = t.customerId === filterCustomer;
+    }
+
     return (
-      (filterCustomer ? t.customerId === filterCustomer : true) &&
+      customerMatch &&
       (filterDriver ? t.driverId === filterDriver : true) &&
-      (filterLorryNo ? t.lorryNo?.toString().includes(filterLorryNo) : true) &&
+      (filterVehicles ? t.vehicleNumber === filterVehicles : true) &&
+      (filterLorryNo ? t.lorryNo?.includes(filterLorryNo) : true) &&
       (localCustomerName
-        ? t.localCustomerName?.toString().includes(localCustomerName)
+        ? t.localCustomerName
+            ?.toLowerCase()
+            .includes(localCustomerName.toLowerCase())
         : true) &&
       isWithinDateRange
     );
   });
 
-  console.log("Filtered Trips:", filteredTrips);
-
   const totalPages = Math.ceil(filteredTrips.length / PAGE_SIZE);
 
   const paginatedTrips = filteredTrips.slice(
     (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
+    currentPage * PAGE_SIZE,
   );
 
   useEffect(() => {
@@ -140,6 +150,7 @@ export default function TripList() {
 
   const clearFilters = () => {
     setFilterCustomer("");
+    setFilterVehicles("");
     setLocalCustomerName("");
     setFilterDriver("");
     setFilterLorryNo("");
@@ -147,17 +158,19 @@ export default function TripList() {
     setToDate("");
     setCurrentPage(1);
   };
-
+  console.log(vehicles);
   return (
     <div className="page-container">
       <h2>Daily Trip List</h2>
-
       <button onClick={() => navigate("/add-daily-trip")}>
         + Add Daily Trip
       </button>
-
+      &nbsp;&nbsp;&nbsp;&nbsp;
       <button onClick={() => clearFilters()}>Clear Filters</button>
-
+      &nbsp;&nbsp;&nbsp;&nbsp; downloadInvoicePDF
+      <button onClick={() => downloadBiltyPDF(filteredTrips, customers)}>
+        Download Trips PDF
+      </button>
       {/* FILTERS */}
       <div
         className="filters"
@@ -168,6 +181,13 @@ export default function TripList() {
           onChange={(e) => setFilterCustomer(e.target.value)}
         >
           <option value="">Filter by Customer</option>
+
+          {/* Static options */}
+          <option value="OTHER_PAID">Other Paid</option>
+          <option value="OTHER_UNPAID">Other Unpaid</option>
+          <option value="OTHER">Other</option>
+
+          {/* Dynamic customers */}
           {customers.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -181,6 +201,18 @@ export default function TripList() {
           value={localCustomerName}
           onChange={(e) => setLocalCustomerName(e.target.value)}
         />
+
+        <select
+          value={filterVehicles}
+          onChange={(e) => setFilterVehicles(e.target.value)}
+        >
+          <option value="">Filter by Vehicles</option>
+          {vehicles.map((d) => (
+            <option key={d.vehicleNumber} value={d.vehicleNumber}>
+              {d.vehicleNumber}
+            </option>
+          ))}
+        </select>
 
         <select
           value={filterDriver}
@@ -219,19 +251,26 @@ export default function TripList() {
           placeholder="To date"
         />
       </div>
-
       {/* TABLE */}
       <table className="styled-table" style={{ marginTop: "20px" }}>
         <thead>
           <tr>
-            <th>Lorry No</th>
-            <th>Customer</th>
-            <th>Driver</th>
-            <th>From</th>
-            <th>To</th>
-            <th>Invoice Value</th>
             <th>Trip Date</th>
-            <th>Added Date</th>
+            <th>Vehicle No.</th>
+            <th>Customer</th>
+            <th>From/To</th>
+            <th>Freight Amount</th>
+
+            <th>Advance Amount</th>
+
+            <th>Expenses</th>
+
+            <th>Detention Amount</th>
+
+            <th>Labour Amount</th>
+            <th>
+              Paymnent /<br></br>Invoice Status
+            </th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -239,39 +278,63 @@ export default function TripList() {
         <tbody>
           {paginatedTrips.map((t) => {
             const customer = customers.find((c) => c.id === t.customerId);
-            const driver = drivers.find((d) => d.id === t.driverId);
 
             return (
-              <tr key={t.id}>
-                <td>{t.lorryNo ? t.lorryNo : "N/A"}</td>
-                <td>
-                  {t?.localCustomerName ? t?.localCustomerName : customer?.name}{" "}
-                </td>
-                <td>{driver?.name}</td>
-                <td>{t.fromLocation}</td>
-                <td>{t.toLocation}</td>
-                <td>₹ {t.tripCharges}</td>
+              <React.Fragment key={t.id}>
+                <tr>
+                  <td>{formatDateMMDDYYYY(t.addTripDate)}</td>
 
-                {/* BILTY BUTTON */}
-                <td>{formatDateMMDDYYYY(t.addTripDate)}</td>
-                <td>{formatDateMMDDYYYY(t.addedDate)}</td>
+                  <td>{t.vehicleNumber}</td>
+                  <td>
+                    {t?.localCustomerName
+                      ? t?.localCustomerName
+                      : customer?.name}{" "}
+                  </td>
+                  <td>
+                    {t.fromLocation}/{t.toLocation}
+                  </td>
 
-                <td>
-                  <button onClick={() => navigate(`/edit-daily-trip/${t.id}`)}>
-                    Edit
-                  </button>
-                  <button
-                    style={{
-                      marginLeft: "5px",
-                      background: "red",
-                      color: "#fff",
-                    }}
-                    onClick={() => handleDeleteClick(t.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
+                  <td>₹ {t.tripCharges}</td>
+                  <td>₹ {t.advanceAmount > 0 ? t.advanceAmount : "0"}</td>
+                  <td>₹ {t.tripExpense > 0 ? t.tripExpense : "0"}</td>
+                  <td>₹ {t.detentionCharges > 0 ? t.detentionCharges : "0"}</td>
+                  <td>₹ {t.labourCharges > 0 ? t.labourCharges : "0"}</td>
+                  {/* BILTY BUTTON */}
+
+                  <td>
+                    {t.paymentStatus} / {t.invoiceCreated}
+                  </td>
+
+                  <td>
+                    {t.paymentStatus != "Paid" && (
+                      <button
+                        onClick={() => navigate(`/edit-daily-trip/${t.id}`)}
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {t.invoiceId && (
+                      <button
+                        style={{
+                          marginLeft: "5px",
+                          background: "#0c531f",
+                          color: "#fff",
+                        }}
+                        onClick={() => navigate(`/invoices/${t.invoiceId}`)}
+                      >
+                        Invoice{" "}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+
+                {t.specialNotes != "" && (
+                  <tr>
+                    {" "}
+                    <td colSpan={13}>Special Notes:- {t.specialNotes}</td>
+                  </tr>
+                )}
+              </React.Fragment>
             );
           })}
 
@@ -308,7 +371,6 @@ export default function TripList() {
           </tr>
         </tbody>
       </table>
-
       <DeleteConfirmModal
         open={showDeleteModal}
         title="Delete Trip"

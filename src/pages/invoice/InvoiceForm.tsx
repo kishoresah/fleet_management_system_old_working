@@ -22,10 +22,6 @@ const InvoiceForm: React.FC<Props> = ({
   formData,
   customers,
   onChange,
-  onItemChange,
-  addItem,
-  removeItem,
-  calculateTotals,
   selectedTrips,
   setSelectedTrips,
   onSubmit,
@@ -44,7 +40,7 @@ const InvoiceForm: React.FC<Props> = ({
       where("customerId", "==", customerId),
       where("paymentStatus", "==", "unpaid"),
       where("invoiceCreated", "==", "no"),
-      orderBy("addTripDate", "desc")
+      orderBy("addTripDate", "desc"),
     );
 
     const snap = await getDocs(q);
@@ -53,6 +49,7 @@ const InvoiceForm: React.FC<Props> = ({
 
   console.log("Selected Trips in InvoiceForm:", trips);
   useEffect(() => {
+    console.log("Calculating items for selected trips:", trips);
     const items = trips
       .filter((t) => selectedTrips.includes(t.id))
       .map((t) => ({
@@ -60,12 +57,36 @@ const InvoiceForm: React.FC<Props> = ({
                           ${t.fromLocation} to ${t.toLocation}{" "}
                           ${
                             t.tripCharges
-                              ? "— ₹" + t.tripCharges + " — " + t.tripExpense
+                              ? "— ₹" +
+                                Number(t.tripCharges) +
+                                " — " +
+                                Number(t.tripExpense) +
+                                " — " +
+                                Number(t.labourCharges) +
+                                " — " +
+                                Number(t.detentionCharges) +
+                                " — Advance Amount" +
+                                Number(t.advanceAmount) +
+                                " — " +
+                                t.vehicleNumber +
+                                " — " +
+                                t.specialNotes
                               : ""
                           }`,
         quantity: 1,
-        price: t.tripCharges ? t.tripCharges : 0,
-        total: t.tripCharges ? t.tripCharges : 0,
+        price:
+          Number(t.tripCharges) +
+          Number(t.tripExpense) +
+          Number(t.labourCharges) +
+          Number(t.detentionCharges),
+        advanceAmount: t.advanceAmount ? t.advanceAmount : 0,
+        total: t.tripCharges
+          ? Number(t.tripCharges) +
+            Number(t.tripExpense) +
+            Number(t.labourCharges) -
+            Number(t.advanceAmount) +
+            Number(t.detentionCharges)
+          : 0,
         tripId: t.id,
       }));
 
@@ -108,10 +129,10 @@ const InvoiceForm: React.FC<Props> = ({
             {trips.length > 0 && (
               <>
                 {" "}
-                <div className="form-row">
-                  <div className="form-group">
-                    <h3>Unpaid Trips</h3>
-                    {trips.map((trip) => (
+                <h3>Unpaid Trips</h3>
+                {trips.map((trip) => (
+                  <>
+                    <div className="form-row">
                       <label key={trip.id} className="trip-row">
                         <input
                           type="checkbox"
@@ -121,24 +142,50 @@ const InvoiceForm: React.FC<Props> = ({
                               setSelectedTrips([...selectedTrips, trip.id]);
                             } else {
                               setSelectedTrips(
-                                selectedTrips.filter((id) => id !== trip.id)
+                                selectedTrips.filter((id) => id !== trip.id),
                               );
                             }
                           }}
                         />
 
-                        <span className="trip-text">
-                          {formatDateMMDDYYYY(trip.addTripDate)} —{" "}
-                          {trip.fromLocation} to {trip.toLocation}{" "}
-                          {trip.tripCharges
-                            ? "— ₹" +
-                              trip.tripCharges +
-                              " — " +
-                              trip.tripExpense
-                            : ""}
+                        <span className="trip-row">
+                          <span className="trip-main">
+                            {trip.vehicleNumber} •{" "}
+                            {formatDateMMDDYYYY(trip.addTripDate)} •{" "}
+                            {trip.fromLocation} → {trip.toLocation}
+                          </span>
+
+                          {trip.tripCharges && (
+                            <>
+                              <span className="trip-meta">
+                                <span>FR: ₹{trip.tripCharges}</span>
+                                <span>Exp: ₹{trip.tripExpense}</span>
+                                <span>Labour: ₹{trip.labourCharges}</span>
+                                <span>Adv: ₹{trip.advanceAmount}</span>
+                                <span>Detention: ₹{trip.detentionCharges}</span>
+                              </span>
+                            </>
+                          )}
                         </span>
                       </label>
-                    ))}{" "}
+                    </div>
+                    <div className="form-row">
+                      <span className="trip-meta">
+                        {trip.specialNotes && (
+                          <span>Notes: {trip.specialNotes}</span>
+                        )}
+                      </span>
+                    </div>
+                  </>
+                ))}{" "}
+              </>
+            )}
+            {trips.length == 0 && (
+              <>
+                {" "}
+                <div className="form-row">
+                  <div className="form-group error">
+                    No Invoice pending for selected Customer.
                   </div>
                 </div>
               </>
@@ -161,12 +208,13 @@ const InvoiceForm: React.FC<Props> = ({
 
             <div className="form-row">
               <div className="form-group">
-                <label>Total Bill Amount</label>
+                <label>Invoice Created Date</label>
                 <input
-                  type="text"
-                  name="tripBillAmount"
-                  value={formData.tripBillAmount}
+                  type="date"
+                  name="invoiceCreatedDate"
+                  value={formData.invoiceCreatedDate}
                   onChange={onChange}
+                  required
                 />
               </div>
             </div>
@@ -182,8 +230,8 @@ const InvoiceForm: React.FC<Props> = ({
                   value={formData.paymentStatus}
                   onChange={onChange}
                 >
-                  <option value="paid">Paid</option>
                   <option value="unpaid">Not Paid</option>
+                  <option value="paid">Paid</option>
                 </select>
               </div>
             </div>

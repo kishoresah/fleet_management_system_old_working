@@ -1,0 +1,204 @@
+import React, { useEffect, useState } from "react";
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { db } from "../../firebaseConfigTest";
+import { useNavigate } from "react-router-dom";
+import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
+
+export default function ListInvoices() {
+  const navigate = useNavigate();
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    loadInvoices();
+  }, []);
+
+  const loadInvoices = async () => {
+    const q = query(
+      collection(db, "invoices"),
+      orderBy("createdAt", "desc") // 🔥 latest first
+    );
+
+    const snap = await getDocs(q);
+    setInvoices(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  };
+
+  useEffect(() => {
+    const loadCustomers = async () => {
+      const snap = await getDocs(collection(db, "customers"));
+
+      const map: Record<string, string> = {};
+      snap.docs.forEach((doc) => {
+        map[doc.id] = doc.data().name;
+      });
+
+      setCustomerMap(map);
+    };
+
+    loadCustomers();
+  }, []);
+
+  const getCustomerNameById = (id: string) => {
+    return customerMap[id] || "—";
+  };
+
+  const sendWhatsAppReminder = (inv: any, name: string) => {
+    const bal: number = (inv.tripBillAmount || 0) - (inv.totalPaid || 0);
+
+    const message = `Hello ${name}, Pending balance for invoice is ₹ ${bal}. Invoice date ${
+      inv.createdAt?.toDate ? inv.createdAt.toDate().toLocaleDateString() : "-"
+    }. Please arrange the payment. Thank you.`;
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank");
+  };
+
+  const sendGmailReminder = (inv: any, name: string) => {
+    const bal: number = (inv.tripBillAmount || 0) - (inv.totalPaid || 0);
+    const subject = `Payment Reminder: Invoice #${inv.lorryNo} amount due ₹${
+      Number(inv.tripBillAmount || 0) - Number(inv.totalPaid || 0)
+    }`;
+    const body = `Hello ${name},
+
+This is a gentle reminder that the pending balance for your invoice is 
+₹${bal}.
+  
+Invoice Date: ${
+      inv.createdAt?.toDate ? inv.createdAt.toDate().toLocaleDateString() : "-"
+    }
+
+Please arrange the payment at your earliest convenience.
+Thank you for your prompt attention.
+
+Best regards,
+Prakash Transports,
+Sudhir Kumar
+Phone: +91-9540670670`;
+
+    const gmailURL = `https://mail.google.com/mail/?view=cm&fs=1&to=${
+      inv.customerEmail || ""
+    }&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    window.open(gmailURL, "_blank");
+  };
+
+  return (
+    <div className="page-container">
+      <h2>Invoices</h2>
+
+      <button onClick={() => navigate("/add-invoice")}>+ Add Invoice</button>
+
+      <table className="styled-table">
+        <thead>
+          <tr>
+            <th>Lorry No</th>
+            <th>Customer</th>
+            <th>Total Amt</th>
+            <th>Paid Amt</th>
+            <th>Pending Amt</th>
+            <th>Status</th>
+            <th style={{ fontWeight: "bold" }}>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {invoices.map((inv) => {
+            const isPaid = inv.totalPaid >= inv.tripBillAmount;
+
+            return (
+              <tr key={inv.id}>
+                <td>{inv.lorryNo}</td>
+                <td>{getCustomerNameById(inv.customerName)}</td>
+                <td>₹ {inv.tripBillAmount}</td>
+                <td>₹ {inv.totalPaid}</td>
+                <td>
+                  ₹{" "}
+                  {Number(inv.tripBillAmount || 0) - Number(inv.totalPaid || 0)}
+                </td>
+
+                {/* ✅ Status Badge */}
+                <td>
+                  {inv.totalPaid === 0 && (
+                    <span className="badge red">Unpaid</span>
+                  )}
+                  {inv.totalPaid > 0 && inv.totalPaid < inv.tripBillAmount && (
+                    <span className="badge orange">Partial</span>
+                  )}
+                  {isPaid && <span className="badge green">Paid</span>}
+                </td>
+
+                <td>
+                  {inv.createdAt?.toDate
+                    ? inv.createdAt.toDate().toLocaleDateString()
+                    : "-"}
+                </td>
+
+                <td style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  <button onClick={() => navigate(`/invoice/${inv.id}`)}>
+                    View
+                  </button>
+
+                  <button onClick={() => navigate(`/add-payment/${inv.id}`)}>
+                    Add Payment
+                  </button>
+
+                  {/* ✅ Only show reminder buttons if NOT fully paid */}
+
+                  <>
+                    <button
+                      onClick={() =>
+                        sendWhatsAppReminder(
+                          inv,
+                          getCustomerNameById(inv.customerName)
+                        )
+                      }
+                      style={{
+                        backgroundColor: "#25D366",
+                        color: "white",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                      title="Send WhatsApp Reminder"
+                    >
+                      <FaWhatsapp size={18} />
+                      WhatsApp
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        sendGmailReminder(
+                          inv,
+                          getCustomerNameById(inv.customerName)
+                        )
+                      }
+                      style={{
+                        backgroundColor: "#EA4335",
+                        color: "white",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                      title="Send Gmail Reminder"
+                    >
+                      <FaEnvelope size={18} />
+                      Gmail
+                    </button>
+                  </>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}

@@ -33,7 +33,7 @@ export default function InvoiceDetails() {
   return (
     <div>
       <h2>Invoice #{invoice.lorryNo}</h2>
-      <p>Customer: {invoice.customerName}</p>
+      <p>Customer: {invoice.customerSelectedName}</p>
       <p>Total: ₹ {invoice.tripBillAmount}</p>
       <p>Paid: ₹ {invoice.totalPaid}</p>
       <p>Pending: ₹ {invoice.totalPending}</p>

@@ -1,12 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { getDoc, increment } from "firebase/firestore";
 import {
   addDoc,
   collection,
   serverTimestamp,
   doc,
   updateDoc,
-  increment,
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../../firebaseConfigTest";
@@ -16,7 +16,7 @@ import { Box, Paper, Typography, TextField, Button } from "@mui/material";
 export default function AddPayment() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState("");
   const [paymentDate, setPaymentDate] = useState("");
 
   const submitPayment = async () => {
@@ -32,29 +32,59 @@ export default function AddPayment() {
       ? Timestamp.fromDate(new Date(paymentDate))
       : serverTimestamp();
 
+    const invoiceRef = doc(db, "invoices", id!);
+    const invoiceSnap = await getDoc(invoiceRef);
+
+    if (!invoiceSnap.exists()) {
+      alert("Invoice not found");
+      return;
+    }
+
+    const invoiceData = invoiceSnap.data();
+
+    const tripBillAmount = Number(invoiceData.totalPending || 0);
+    // const prevPaid = Number(invoiceData.totalPaid || 0);
+    const paidNow = Number(amount);
+
+    const newTotalPaid = paidNow;
+    const newTotalPending = Math.max(tripBillAmount - newTotalPaid, 0);
+
+    let paymentStatus: "paid" | "partial" | "unpaid" = "unpaid";
+
+    if (newTotalPending < 1) {
+      paymentStatus = "paid";
+      await markTripsAsPaid(invoiceData.items);
+    } else if (newTotalPaid > 0) {
+      paymentStatus = "partial";
+    }
+
+    // 1️⃣ Save payment
     await addDoc(collection(db, "payments"), {
       invoiceId: id,
-      amountPaid: Number(amount),
+      amountPaid: paidNow,
       paymentDate: finalPaymentDate,
       addedByUserId: user.uid,
       addedByUsername: user.displayName || user.email,
       addedAt: serverTimestamp(),
     });
 
-    const invoiceRef = doc(db, "invoices", id!);
     await updateDoc(invoiceRef, {
-      totalPaid: increment(Number(amount)),
-      totalPending: increment(-Number(amount)),
-      paymentStatus:
-        Number(amount) > 0
-          ? increment(Number(amount)) == 0
-            ? "paid"
-            : "partial"
-          : "unpaid",
+      totalPaid: increment(newTotalPaid), // ✅ add instead of overwrite
+      totalPending: newTotalPending,
+      paymentStatus,
       lastPaymentDate: finalPaymentDate,
     });
 
     navigate(`/invoice/${id}`);
+  };
+
+  const markTripsAsPaid = async (trips: any) => {
+    for (const tripsInfo of trips) {
+      await updateDoc(doc(db, "dailyTrips", tripsInfo.tripId), {
+        paymentStatus: "Paid",
+        paymentDate: serverTimestamp(),
+      });
+    }
   };
 
   return (
@@ -78,7 +108,7 @@ export default function AddPayment() {
           fullWidth
           margin="normal"
           value={amount}
-          onChange={(e) => setAmount(Number(e.target.value))}
+          onChange={(e) => setAmount(e.target.value)}
         />
 
         <TextField

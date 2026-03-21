@@ -56,6 +56,7 @@ function App() {
           <Route path="/add-vehicle" element={<AddVehicle />} />
           <Route path="/edit-vehicle/:id" element={<EditVehicle />} />
 
+          <Route path="/invoices/:id" element={<ListInvoices />} />
           <Route path="/invoices" element={<ListInvoices />} />
           <Route path="/add-invoice" element={<AddInvoice />} />
           <Route path="/edit-invoice/:id" element={<EditInvoice />} />

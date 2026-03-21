@@ -11,6 +11,7 @@ import {
 import { db } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
 import InvoiceForm from "./InvoiceForm";
+import TripForm from "../dailyTrips/TripForm";
 
 const AddInvoice = () => {
   const navigate = useNavigate();
@@ -34,18 +35,34 @@ const AddInvoice = () => {
           id: d.id,
           name: d.data().name,
           gst: d.data().gst,
-        }))
+        })),
       );
     };
 
     loadCustomers();
   }, []);
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value =
-      e.target.name === "isGST" ? e.target.value === "yes" : e.target.value;
+  const onChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
 
-    setFormData((prev) => ({ ...prev, [e.target.name]: value }));
+    const finalValue = name === "isGST" ? value === "yes" : value;
+
+    let selectedCustomer = null;
+
+    if (name === "customerName") {
+      selectedCustomer = customers.find((c) => c.id === value);
+      console.log("Selected customer:", selectedCustomer);
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: finalValue,
+      ...(name === "customerName" && {
+        customerSelectedName: selectedCustomer?.name || "",
+      }),
+    }));
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -66,21 +83,35 @@ const AddInvoice = () => {
         return newNumber;
       });
 
+      console.log("formData kishor :", formData);
+      const totalPending = formData?.items?.reduce(
+        (sum, item) => sum + Number(item.total),
+        0,
+      );
+      const advanceAmount = formData?.items?.reduce(
+        (sum, item) => sum + Number(item.advanceAmount),
+        0,
+      );
+      const totalPrice = formData?.items?.reduce(
+        (sum, item) => sum + Number(item.price),
+        0,
+      );
+
       const obj = {
         ...formData,
-        subtotal: Number(formData.subtotal) || 0,
-        finalTotal: Number(formData.finalTotal) || 0,
-        totalPaid: 0,
-        totalPending: Number(formData.finalTotal) || 0,
+        advanceAmount: Number(advanceAmount) || 0,
+        tripBillAmount: Number(totalPrice) || 0,
+        totalPaid: Number(advanceAmount) || 0,
+        totalPending: Number(totalPending) || 0,
         paymentStatus: "unpaid",
         lorryNo,
         createdAt: serverTimestamp(),
       };
       console.log("Saving invoice:", obj);
 
-      await addDoc(collection(db, "invoices"), obj);
+      const docRef = await addDoc(collection(db, "invoices"), obj);
 
-      await markTripsAsInvoiced();
+      await markTripsAsInvoiced(docRef.id);
       navigate("/invoices");
     } catch (error) {
       console.error("Failed to save invoice:", error);
@@ -89,10 +120,11 @@ const AddInvoice = () => {
     }
   };
 
-  const markTripsAsInvoiced = async () => {
+  const markTripsAsInvoiced = async (invoiceId: string) => {
     for (const tripId of selectedTrips) {
       await updateDoc(doc(db, "dailyTrips", tripId), {
         invoiceCreated: "yes",
+        invoiceId,
       });
     }
   };

@@ -30,3 +30,18 @@ export function formatDateMMDDYYYY(
 
     return `${dd}/${mm}/${yyyy}`;
 }
+
+export const formatCurrency = (amount?: number | string) => {
+    if (amount === undefined || amount === null || amount === "") return "";
+
+    return Number(amount).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+};
+
+export const toTitleCase = (str = "") => {
+    return str
+        .toLowerCase()
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+};

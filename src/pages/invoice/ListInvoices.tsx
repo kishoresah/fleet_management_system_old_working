@@ -1,19 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import { db } from "../../firebaseConfigTest";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
+import downloadInvoicePDF from "./generateinvoicepdf";
 
 export default function ListInvoices() {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [customerMap, setCustomerMap] = useState<Record<string, string>>({});
+  const { id } = useParams();
 
   useEffect(() => {
-    getDocs(collection(db, "invoices")).then((snap) =>
-      setInvoices(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    const loadData = async () => {
+      if (id) {
+        // Single invoice
+        const docSnap = await getDoc(doc(db, "invoices", id));
+        if (docSnap.exists()) {
+          setInvoices([{ id: docSnap.id, ...docSnap.data() }]);
+        }
+      } else {
+        // All invoices
+        await loadInvoices();
+      }
+    };
+
+    loadData();
+  }, [id]);
+
+  console.log("Loaded invoices:", invoices);
+
+  const loadInvoices = async () => {
+    const q = query(
+      collection(db, "invoices"),
+      orderBy("createdAt", "desc"), // 🔥 latest first
     );
-  }, []);
+
+    const snap = await getDocs(q);
+    setInvoices(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  };
 
   useEffect(() => {
     const loadCustomers = async () => {
@@ -35,13 +67,9 @@ export default function ListInvoices() {
   };
 
   const sendWhatsAppReminder = (inv: any, name: string) => {
-    const message = `Hello ${name}, Pending balance for invoice number ${
-      inv.lorryNo
-    } is ₹${inv.totalPending}. Last payment date ${
-      inv.lastPaymentDate?.toDate
-        ? inv.lastPaymentDate.toDate().toLocaleDateString()
-        : "-"
-    } and invoice date ${
+    const bal: number = (inv.tripBillAmount || 0) - (inv.totalPaid || 0);
+
+    const message = `Hello ${name}, Pending balance for invoice is ₹ ${bal}. Invoice date ${
       inv.createdAt?.toDate ? inv.createdAt.toDate().toLocaleDateString() : "-"
     }. Please arrange the payment. Thank you.`;
 
@@ -49,20 +77,17 @@ export default function ListInvoices() {
   };
 
   const sendGmailReminder = (inv: any, name: string) => {
-    const subject = `Payment Reminder: Invoice #${inv.lorryNo} amount due ₹${inv.totalPending}`;
+    const bal: number = (inv.tripBillAmount || 0) - (inv.totalPaid || 0);
+    const subject = `Payment Reminder: Invoice #${inv.lorryNo} amount due ₹${
+      Number(inv.tripBillAmount || 0) - Number(inv.totalPaid || 0)
+    }`;
     const body = `Hello ${name},
 
-This is a gentle reminder that the pending balance for your invoice #${
-      inv.lorryNo
-    } is ₹${inv.totalPending}.
+This is a gentle reminder that the pending balance for your invoice is 
+₹${bal}.
   
 Invoice Date: ${
       inv.createdAt?.toDate ? inv.createdAt.toDate().toLocaleDateString() : "-"
-    }
-Last Payment Date: ${
-      inv.lastPaymentDate?.toDate
-        ? inv.lastPaymentDate.toDate().toLocaleDateString()
-        : "-"
     }
 
 Please arrange the payment at your earliest convenience.
@@ -79,6 +104,7 @@ Phone: +91-9540670670`;
 
     window.open(gmailURL, "_blank");
   };
+  console.log("Invoices loaded:", invoices);
 
   return (
     <div className="page-container">
@@ -91,37 +117,28 @@ Phone: +91-9540670670`;
           <tr>
             <th>Lorry No</th>
             <th>Customer</th>
-            <th>Total Amt</th>
-            <th>Paid Amt</th>
-            <th>Pending Amt</th>
-            <th>Status</th>
+            <th>Total Pending</th>
+
+            <th>Advance</th>
+            <th>Total Paid</th>
+            <th>Payment Status</th>
             <th style={{ fontWeight: "bold" }}>Created At</th>
-            <th>Actions</th>
+            <th colSpan={2}>Actions</th>
           </tr>
         </thead>
 
         <tbody>
           {invoices.map((inv) => {
-            const isPaid = inv.totalPaid >= inv.tripBillAmount;
-
             return (
               <tr key={inv.id}>
                 <td>{inv.lorryNo}</td>
                 <td>{getCustomerNameById(inv.customerName)}</td>
-                <td>₹ {inv.tripBillAmount}</td>
-                <td>₹ {inv.totalPaid}</td>
-                <td>₹ {inv.totalPending}</td>
+                <td>{inv.totalPending}</td>
 
-                {/* ✅ Status Badge */}
-                <td>
-                  {inv.totalPaid === 0 && (
-                    <span className="badge red">Unpaid</span>
-                  )}
-                  {inv.totalPaid > 0 && inv.totalPaid < inv.tripBillAmount && (
-                    <span className="badge orange">Partial</span>
-                  )}
-                  {isPaid && <span className="badge green">Paid</span>}
-                </td>
+                <td>{inv.advanceAmount}</td>
+
+                <td>{inv.totalPaid}</td>
+                <td>{inv.paymentStatus}</td>
 
                 <td>
                   {inv.createdAt?.toDate
@@ -134,62 +151,67 @@ Phone: +91-9540670670`;
                     View
                   </button>
 
-                  <button onClick={() => navigate(`/add-payment/${inv.id}`)}>
-                    Add Payment
+                  {inv.paymentStatus.toLowerCase() != "paid" && (
+                    <button onClick={() => navigate(`/add-payment/${inv.id}`)}>
+                      Add Payment
+                    </button>
+                  )}
+
+                  <button onClick={() => downloadInvoicePDF(inv.id, inv)}>
+                    Download PDF
                   </button>
 
-                  {/* ✅ Only show reminder buttons if NOT fully paid */}
-                  {!isPaid && (
-                    <>
-                      <button
-                        onClick={() =>
-                          sendWhatsAppReminder(
-                            inv,
-                            getCustomerNameById(inv.customerName)
-                          )
-                        }
-                        style={{
-                          backgroundColor: "#25D366",
-                          color: "white",
-                          border: "none",
-                          padding: "6px 10px",
-                          borderRadius: "5px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                        }}
-                        title="Send WhatsApp Reminder"
-                      >
-                        <FaWhatsapp size={18} />
-                        WhatsApp
-                      </button>
+                  {/* ✅ Only show reminder buttons if NOT fully paid 
 
-                      <button
-                        onClick={() =>
-                          sendGmailReminder(
-                            inv,
-                            getCustomerNameById(inv.customerName)
-                          )
-                        }
-                        style={{
-                          backgroundColor: "#EA4335",
-                          color: "white",
-                          border: "none",
-                          padding: "6px 10px",
-                          borderRadius: "5px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                        }}
-                        title="Send Gmail Reminder"
-                      >
-                        <FaEnvelope size={18} />
-                        Gmail
-                      </button>
-                    </>
-                  )}
+                  <>
+                    <button
+                      onClick={() =>
+                        sendWhatsAppReminder(
+                          inv,
+                          getCustomerNameById(inv.customerName),
+                        )
+                      }
+                      style={{
+                        backgroundColor: "#25D366",
+                        color: "white",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                      title="Send WhatsApp Reminder"
+                    >
+                      <FaWhatsapp size={18} />
+                      WhatsApp
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        sendGmailReminder(
+                          inv,
+                          getCustomerNameById(inv.customerName),
+                        )
+                      }
+                      style={{
+                        backgroundColor: "#EA4335",
+                        color: "white",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "5px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                      title="Send Gmail Reminder"
+                    >
+                      <FaEnvelope size={18} />
+                      Gmail
+                    </button>
+                  </>*/}
                 </td>
               </tr>
             );

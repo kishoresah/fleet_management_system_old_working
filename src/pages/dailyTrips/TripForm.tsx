@@ -111,29 +111,7 @@ export default function TripForm({
               </div>
 
               <div className="form-group">
-                <label>Trip Commission</label>
-                <input
-                  type="text"
-                  name="tripCommission"
-                  value={formData.tripCommission}
-                  onChange={onChange}
-                />
-              </div>
-            </div>
-
-            {/* Trip Details */}
-            <div className="form-row">
-              <div className="form-group">
-                <label>Trip Expense</label>
-                <input
-                  type="text"
-                  name="tripExpense"
-                  value={formData.tripExpense}
-                  onChange={onChange}
-                />
-              </div>
-              <div className="form-group">
-                <label>Bill Amount (₹)</label>
+                <label>Freight (Bill Amount)(₹)</label>
                 <input
                   type="number"
                   name="tripCharges"
@@ -143,13 +121,58 @@ export default function TripForm({
               </div>
             </div>
 
+            {/* Trip Details */}
             <div className="form-row">
               <div className="form-group">
-                <label>Freight</label>
+                <label>Trip Expense(₹)</label>
                 <input
                   type="text"
-                  name="tripGoods"
-                  value={formData.tripGoods}
+                  name="tripExpense"
+                  value={formData.tripExpense}
+                  onChange={onChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Trip Commission(₹)</label>
+                <input
+                  type="text"
+                  name="tripCommission"
+                  value={formData.tripCommission}
+                  onChange={onChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Labour Charges(₹)</label>
+                <input
+                  type="text"
+                  name="labourCharges"
+                  value={formData.labourCharges}
+                  onChange={onChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Detention Charges(₹)</label>
+                <input
+                  type="text"
+                  name="detentionCharges"
+                  value={formData.detentionCharges}
+                  onChange={onChange}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Advance Amount(₹)</label>
+                <input
+                  type="text"
+                  name="advanceAmount"
+                  value={formData.advanceAmount}
                   onChange={onChange}
                 />
               </div>
@@ -170,6 +193,7 @@ export default function TripForm({
                 <label>From Location</label>
                 <input
                   required
+                  autoComplete="on"
                   type="text"
                   name="fromLocation"
                   value={formData.fromLocation}
@@ -202,6 +226,7 @@ export default function TripForm({
                 <label>To Location</label>
                 <input
                   type="text"
+                  autoComplete="on"
                   required
                   name="toLocation"
                   value={formData.toLocation}
@@ -283,6 +308,18 @@ export default function TripForm({
                   value={formData.specialNotes}
                   onChange={onChange}
                 />
+              </div>
+
+              <div className="form-group">
+                <label>Payment Status</label>
+                <select
+                  name="paymentStatus"
+                  value={formData.paymentStatus}
+                  onChange={onChange}
+                >
+                  <option value="Unpaid">Unpaid</option>
+                  <option value="Paid">Paid</option>
+                </select>
               </div>
             </div>
 
