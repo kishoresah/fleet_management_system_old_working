@@ -8,6 +8,7 @@ import {
 import { db, auth } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
 import TripForm from "./TripForm";
+import BackButton from "../../components/Back";
 
 export default function AddDailyTrip() {
   const navigate = useNavigate();
@@ -43,21 +44,21 @@ export default function AddDailyTrip() {
   // Fetch customers
   useEffect(() => {
     getDocs(collection(db, "customers")).then((snap) =>
-      setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+      setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     );
   }, []);
 
   // Fetch drivers
   useEffect(() => {
     getDocs(collection(db, "drivers")).then((snap) =>
-      setDrivers(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+      setDrivers(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     );
   }, []);
 
   // Fetch vehicles
   useEffect(() => {
     getDocs(collection(db, "vehicles")).then((snap) =>
-      setVehicles(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+      setVehicles(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     );
   }, []);
 
@@ -154,6 +155,7 @@ export default function AddDailyTrip() {
 
   return (
     <div className="add-customer-container">
+      <BackButton to="/trip-list" />
       <h2>Add Daily Trip</h2>
 
       <TripForm

@@ -4,6 +4,7 @@ import { db } from "../../firebaseConfigTest";
 import { useNavigate, useParams } from "react-router-dom";
 import type Driver from "../../types/Driver";
 import DriverForm from "./DriverForm";
+import BackButton from "../../components/Back";
 
 const EditDriver: React.FC = () => {
   const { id } = useParams();
@@ -39,6 +40,7 @@ const EditDriver: React.FC = () => {
 
   return (
     <div className="add-customer-container">
+      <BackButton />
       <h2>Edit Driver</h2>
       <DriverForm
         formData={formData}

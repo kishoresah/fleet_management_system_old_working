@@ -18,6 +18,7 @@ import {
   Box,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import BackButton from "../../components/Back";
 
 interface DriverPayment {
   id: string;
@@ -65,6 +66,7 @@ export default function DriverPaymentList() {
 
   return (
     <Box sx={{ padding: 3 }}>
+      <BackButton />
       <Typography variant="h5" gutterBottom>
         Driver Payments
       </Typography>

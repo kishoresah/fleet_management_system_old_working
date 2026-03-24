@@ -23,6 +23,7 @@ import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { getownerName } from "../../utils";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
+import BackButton from "../../components/Back";
 
 export default function CustomerList() {
   const [customers, setCustomers] = useState([]);
@@ -101,6 +102,8 @@ export default function CustomerList() {
 
   return (
     <Box sx={{ p: 1 }}>
+      <BackButton />
+      <br></br>
       <Button variant="contained" onClick={() => navigate("/add-customer")}>
         Add Customer
       </Button>

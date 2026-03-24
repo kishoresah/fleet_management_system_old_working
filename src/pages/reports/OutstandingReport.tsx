@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebaseConfigTest";
 import { FaWhatsapp, FaEnvelope } from "react-icons/fa"; // ✅ Added icons
+import BackButton from "../../components/Back";
 
 export default function OutstandingReport() {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -15,6 +16,7 @@ export default function OutstandingReport() {
       setInvoices(filtered);
     })();
   }, []);
+  console.log("Loaded invoices:", invoices);
 
   const sendGmailReminder = (inv: any) => {
     const subject = `Payment Reminder: Invoice #${inv.lorryNo} amount due ₹${inv.totalPending}`;
@@ -66,6 +68,7 @@ Phone: +91-9540670670`;
 
   return (
     <div className="page-container">
+      <BackButton />
       <h2>Outstanding Payments Report</h2>
 
       <table className="styled-table">
@@ -86,8 +89,8 @@ Phone: +91-9540670670`;
           {invoices.map((inv) => (
             <tr key={inv.id}>
               <td>{inv.lorryNo}</td>
-              <td>{inv.customerName}</td>
-              <td>₹ {inv.finalTotal}</td>
+              <td>{inv.customerSelectedName}</td>
+              <td>₹ {inv.tripBillAmount}</td>
               <td>₹ {inv.totalPaid}</td>
               <td>₹ {inv.totalPending}</td>
               <td>

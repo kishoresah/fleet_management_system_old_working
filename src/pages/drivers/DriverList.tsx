@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { formatDateMMDDYYYY } from "../../utils";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
+import BackButton from "../../components/Back";
 
 export default function DriverList() {
   const [drivers, setDrivers] = useState<any[]>([]);
@@ -59,6 +60,7 @@ export default function DriverList() {
 
   return (
     <div>
+      <BackButton />
       <Button variant="contained" onClick={() => navigate("/add-driver")}>
         Add Driver
       </Button>
@@ -87,7 +89,7 @@ export default function DriverList() {
               <TableCell>
                 {d.joiningDate
                   ? formatDateMMDDYYYY(
-                      new Date(d.joiningDate).toLocaleDateString()
+                      new Date(d.joiningDate).toLocaleDateString(),
                     )
                   : "-"}
               </TableCell>

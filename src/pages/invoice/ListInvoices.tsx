@@ -11,6 +11,7 @@ import { db } from "../../firebaseConfigTest";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaWhatsapp, FaEnvelope } from "react-icons/fa";
 import downloadInvoicePDF from "./generateinvoicepdf";
+import BackButton from "../../components/Back";
 
 export default function ListInvoices() {
   const navigate = useNavigate();
@@ -108,6 +109,7 @@ Phone: +91-9540670670`;
 
   return (
     <div className="page-container">
+      <BackButton />
       <h2>Invoices</h2>
 
       <button onClick={() => navigate("/add-invoice")}>+ Add Invoice</button>
@@ -161,8 +163,6 @@ Phone: +91-9540670670`;
                     Download PDF
                   </button>
 
-                  {/* ✅ Only show reminder buttons if NOT fully paid 
-
                   <>
                     <button
                       onClick={() =>
@@ -211,7 +211,7 @@ Phone: +91-9540670670`;
                       <FaEnvelope size={18} />
                       Gmail
                     </button>
-                  </>*/}
+                  </>
                 </td>
               </tr>
             );

@@ -10,6 +10,7 @@ import {
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../firebaseConfigTest";
 import { useNavigate, useParams } from "react-router-dom";
+import BackButton from "../../components/Back";
 
 const AddDriverPayment: React.FC = () => {
   const { driverId } = useParams<{ driverId: string }>();
@@ -72,6 +73,7 @@ const AddDriverPayment: React.FC = () => {
         borderRadius: 3,
       }}
     >
+      <BackButton />
       <Typography variant="h6" gutterBottom>
         Add Payment for Driver
       </Typography>

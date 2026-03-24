@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebaseConfigTest";
 import { useEffect, useState } from "react";
+import BackButton from "../../components/Back";
 
 export default function InvoiceDetails() {
   const { id } = useParams();
@@ -32,6 +33,7 @@ export default function InvoiceDetails() {
 
   return (
     <div>
+      <BackButton />
       <h2>Invoice #{invoice.lorryNo}</h2>
       <p>Customer: {invoice.customerSelectedName}</p>
       <p>Total: ₹ {invoice.tripBillAmount}</p>

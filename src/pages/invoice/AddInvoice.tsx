@@ -12,6 +12,7 @@ import { db } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
 import InvoiceForm from "./InvoiceForm";
 import TripForm from "../dailyTrips/TripForm";
+import BackButton from "../../components/Back";
 
 const AddInvoice = () => {
   const navigate = useNavigate();
@@ -131,6 +132,7 @@ const AddInvoice = () => {
 
   return (
     <div>
+      <BackButton />
       <h2>Create Invoice</h2>
       <InvoiceForm
         formData={formData}

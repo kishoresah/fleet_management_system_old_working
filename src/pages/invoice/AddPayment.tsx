@@ -12,6 +12,7 @@ import {
 import { db } from "../../firebaseConfigTest";
 import { getAuth } from "firebase/auth";
 import { Box, Paper, Typography, TextField, Button } from "@mui/material";
+import BackButton from "../../components/Back";
 
 export default function AddPayment() {
   const { id } = useParams();
@@ -97,6 +98,7 @@ export default function AddPayment() {
         p: 2,
       }}
     >
+      <BackButton />
       <Paper sx={{ p: 4, width: 400 }} elevation={3}>
         <Typography variant="h5" textAlign="center" mb={3}>
           Add Payment

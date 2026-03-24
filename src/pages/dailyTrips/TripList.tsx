@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import downloadBiltyPDF from "./generatepdfreports";
 import { formatDateMMDDYYYY } from "../../utils";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
+import BackButton from "../../components/Back";
 
 export default function TripList() {
   const navigate = useNavigate();
@@ -161,13 +162,14 @@ export default function TripList() {
   console.log(vehicles);
   return (
     <div className="page-container">
+      <BackButton />
       <h2>Daily Trip List</h2>
       <button onClick={() => navigate("/add-daily-trip")}>
         + Add Daily Trip
       </button>
       &nbsp;&nbsp;&nbsp;&nbsp;
       <button onClick={() => clearFilters()}>Clear Filters</button>
-      &nbsp;&nbsp;&nbsp;&nbsp; downloadInvoicePDF
+      &nbsp;&nbsp;&nbsp;&nbsp;
       <button onClick={() => downloadBiltyPDF(filteredTrips, customers)}>
         Download Trips PDF
       </button>

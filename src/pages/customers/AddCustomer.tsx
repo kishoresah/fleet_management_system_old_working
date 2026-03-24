@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import type Customer from "../../types/Customer";
 import { ownerLists } from "../../constants";
 import { capitalizeWords } from "../../utils";
+import BackButton from "../../components/Back";
 
 const AddCustomer: React.FC = () => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const AddCustomer: React.FC = () => {
         snap.docs.map((doc) => ({
           uid: doc.id,
           displayName: doc.data().displayName,
-        }))
+        })),
       );
     };
     loadUsers();
@@ -91,6 +92,7 @@ const AddCustomer: React.FC = () => {
         p: 1,
       }}
     >
+      <BackButton />
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
         Add Customer
       </Typography>

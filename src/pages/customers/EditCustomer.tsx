@@ -10,6 +10,7 @@ import { db } from "../../firebaseConfigTest";
 import { useNavigate, useParams } from "react-router-dom";
 import type Customer from "../../types/Customer";
 import { ownerLists } from "../../constants";
+import BackButton from "../../components/Back";
 
 const EditCustomer: React.FC = () => {
   const { id } = useParams();
@@ -40,7 +41,7 @@ const EditCustomer: React.FC = () => {
         snap.docs.map((doc) => ({
           uid: doc.id,
           displayName: doc.data().displayName,
-        }))
+        })),
       );
     };
 
@@ -68,7 +69,7 @@ const EditCustomer: React.FC = () => {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
@@ -87,6 +88,7 @@ const EditCustomer: React.FC = () => {
 
   return (
     <div className="add-customer-container">
+      <BackButton />
       <h2>Edit Customer</h2>
 
       {/* Error messages */}

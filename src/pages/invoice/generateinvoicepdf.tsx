@@ -15,6 +15,20 @@ import { toWords } from "number-to-words";
 import logo from "../../assets/t.png";
 import sig from "../../assets/sig.png";
 import { formatCurrency, formatDateMMDDYYYY, toTitleCase } from "../../utils";
+import {
+  ACNO,
+  ADDRESS,
+  BANK_DETAILS,
+  COMPANY_NAME,
+  GST_NUMBER,
+  IFSC,
+  MOBILE1,
+  MOBILE2,
+  PAN_NUMBER,
+  PDF_TITLE,
+  STATE_CODE,
+  TRANSPORT_CONTRACTOR,
+} from "../../constants";
 
 // ✅ Get full customer info
 export const getCustomerById = async (customerId: string) => {
@@ -115,7 +129,7 @@ const downloadInvoicePDF = async (invoiceId, invoice) => {
   // WATERMARK
   docPDF.setTextColor(200, 200, 200);
   docPDF.setFontSize(40);
-  docPDF.text("Prakash Transport Services", 105, 150, {
+  docPDF.text(COMPANY_NAME, 105, 150, {
     angle: 45,
     align: "center",
   });
@@ -126,7 +140,7 @@ const downloadInvoicePDF = async (invoiceId, invoice) => {
   docPDF.addImage(logo, "PNG", 10, 8, 25, 25);
 
   docPDF.setFontSize(11);
-  docPDF.text("Jai Shitla Mata", 105, 10, { align: "center" });
+  docPDF.text(PDF_TITLE, 105, 10, { align: "center" });
 
   docPDF.setFontSize(10);
 
@@ -134,35 +148,35 @@ const downloadInvoicePDF = async (invoiceId, invoice) => {
   const pageWidth = docPDF.internal.pageSize.getWidth();
 
   // Right aligned text
-  docPDF.text("Mob: 9540670670", pageWidth - 10, 10, { align: "right" });
-  docPDF.text("7982064808", pageWidth - 10, 15, { align: "right" });
+  docPDF.text(`Mob: ${MOBILE1}`, pageWidth - 10, 10, { align: "right" });
+  docPDF.text(` ${MOBILE2}`, pageWidth - 10, 15, { align: "right" });
 
   docPDF.setTextColor(220, 0, 0);
   docPDF.setFontSize(18);
-  docPDF.text("PRAKASH TRANSPORT SERVICES", 105, 20, {
+  docPDF.text(COMPANY_NAME, 105, 20, {
     align: "center",
   });
 
   docPDF.setTextColor(0, 0, 0);
   docPDF.setFontSize(11);
-  docPDF.text("TRANSPORT CONTRACTOR", 105, 26, {
+  docPDF.text(TRANSPORT_CONTRACTOR, 105, 26, {
     align: "center",
   });
 
   docPDF.setFontSize(9);
-  docPDF.text("Okhla Industrial Area Phase 2, New Delhi", 105, 32, {
+  docPDF.text(ADDRESS, 105, 32, {
     align: "center",
   });
-  docPDF.text("State Code: 07", 105, 36, {
+  docPDF.text(`State Code: ${STATE_CODE}`, 105, 36, {
     align: "center",
   });
 
   docPDF.setTextColor(220, 0, 0);
   docPDF.setFontSize(10);
-  docPDF.text("GST NO: 07BFUPK9892N1Z3", 105, 40, {
+  docPDF.text(`GST NO: ${GST_NUMBER}`, 105, 40, {
     align: "center",
   });
-  docPDF.text("PAN: BFUPK9892N", 105, 45, {
+  docPDF.text(`PAN: ${PAN_NUMBER}`, 105, 45, {
     align: "center",
   });
 
@@ -225,9 +239,9 @@ const downloadInvoicePDF = async (invoiceId, invoice) => {
   const bankStartY = leftStartY + 25;
 
   docPDF.text("Bank Details:", 10, bankStartY);
-  docPDF.text("Bank: State Bank of India", 10, bankStartY + 5);
-  docPDF.text("A/C No: 37147031198", 10, bankStartY + 10);
-  docPDF.text("IFSC: SBIN0014461", 10, bankStartY + 15);
+  docPDF.text(BANK_DETAILS, 10, bankStartY + 5);
+  docPDF.text(ACNO, 10, bankStartY + 10);
+  docPDF.text(IFSC, 10, bankStartY + 15);
 
   // ✅ RIGHT SIDE (TOTAL BOX)
   const boxStartY = finalY - 5;
@@ -288,7 +302,7 @@ const downloadInvoicePDF = async (invoiceId, invoice) => {
   const signY = Math.max(bankStartY + 25, boxStartY + boxHeight + 10);
 
   docPDF.setTextColor(220, 0, 0);
-  docPDF.text("For PRAKASH TRANSPORT SERVICES", 130, signY);
+  docPDF.text(`For ${COMPANY_NAME}`, 130, signY);
 
   docPDF.setTextColor(0, 0, 0);
   docPDF.text("Authorised Signatory", 150, signY + 7);

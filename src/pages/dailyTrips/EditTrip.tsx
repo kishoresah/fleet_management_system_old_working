@@ -9,6 +9,7 @@ import {
 import { db } from "../../firebaseConfigTest";
 import { useNavigate, useParams } from "react-router-dom";
 import TripForm from "./TripForm";
+import BackButton from "../../components/Back";
 
 export default function EditDailyTrip() {
   const { id } = useParams();
@@ -23,13 +24,13 @@ export default function EditDailyTrip() {
   // Load customers, drivers, vehicles
   useEffect(() => {
     getDocs(collection(db, "customers")).then((snap) =>
-      setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+      setCustomers(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     );
     getDocs(collection(db, "drivers")).then((snap) =>
-      setDrivers(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+      setDrivers(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     );
     getDocs(collection(db, "vehicles")).then((snap) =>
-      setVehicles(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+      setVehicles(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     );
   }, []);
 
@@ -96,8 +97,8 @@ export default function EditDailyTrip() {
 
   return (
     <div className="add-customer-container">
+      <BackButton />
       <h2>Edit Daily Trip</h2>
-
       <TripForm
         formData={{ ...formData, vehicles }}
         isSubmitting={isSubmitting}

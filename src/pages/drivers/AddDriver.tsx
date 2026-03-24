@@ -4,6 +4,7 @@ import { db } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
 import type Driver from "../../types/Driver";
 import DriverForm from "./DriverForm";
+import BackButton from "../../components/Back";
 
 const AddDriver: React.FC = () => {
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ const AddDriver: React.FC = () => {
 
   return (
     <div className="add-customer-container">
+      <BackButton />
       <h2>Add Driver</h2>
       <DriverForm
         formData={formData}
