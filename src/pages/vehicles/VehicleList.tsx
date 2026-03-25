@@ -8,6 +8,9 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Box,
+  TableContainer,
+  Paper,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type Vehicle from "../../types/Vehicle";
@@ -59,108 +62,117 @@ export default function VehicleList() {
 
   return (
     <div>
-      <Button variant="contained" onClick={() => navigate("/add-vehicle")}>
-        Add Vehicle
-      </Button>
+      <Box
+        sx={{
+          overflow: { xs: "hidden", md: "visible" },
+          width: { xs: "85vw", md: "100%" },
+        }}
+      >
+        <Button variant="contained" onClick={() => navigate("/add-vehicle")}>
+          Add Vehicle
+        </Button>
 
-      <Table sx={{ mt: 3 }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Vehicle No</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Brand</TableCell>
-            <TableCell>Model</TableCell>
-            <TableCell>Pollution Expiry</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {vehicles.map((v) => {
-            const pollutionExpired = isExpired(v.pollutionExpiry);
-            const insuranceExpired = isExpired(v.insuranceExpiry);
-            const fitnessExpired = isExpired(v.fitnessExpiry);
-            const permitExpired = isExpired(v.permitExpiry);
-
-            const pollutionSoon =
-              !pollutionExpired && isExpiringSoon(v.pollutionExpiry);
-            const insuranceSoon =
-              !insuranceExpired && isExpiringSoon(v.insuranceExpiry);
-            const fitnessSoon =
-              !fitnessExpired && isExpiringSoon(v.fitnessExpiry);
-            const permitSoon = !permitExpired && isExpiringSoon(v.permitExpiry);
-
-            const isAnyExpired =
-              pollutionExpired ||
-              insuranceExpired ||
-              fitnessExpired ||
-              permitExpired;
-
-            return (
-              <TableRow
-                key={v.id}
-                sx={{
-                  backgroundColor:
-                    pollutionExpired ||
-                    insuranceExpired ||
-                    fitnessExpired ||
-                    permitExpired
-                      ? "#fdecea" // RED for expired
-                      : pollutionSoon ||
-                        insuranceSoon ||
-                        fitnessSoon ||
-                        permitSoon
-                      ? "#fff4e5" // YELLOW for expiring soon
-                      : "inherit",
-                }}
-              >
-                <TableCell>{v.vehicleNumber}</TableCell>
-                <TableCell>{v.vehicleType}</TableCell>
-                <TableCell>{v.brand}</TableCell>
-                <TableCell>{v.model}</TableCell>
-
-                <TableCell>
-                  {v.pollutionExpiry
-                    ? formatDateMMDDYYYY(
-                        new Date(v.pollutionExpiry).toLocaleDateString()
-                      )
-                    : "-"}
-                </TableCell>
-
-                <TableCell>
-                  {pollutionExpired && "Pollution Expired "}
-                  {insuranceExpired && "Insurance Expired "}
-                  {fitnessExpired && "Fitness Expired "}
-                  {permitExpired && "Permit Expired "}
-
-                  {pollutionSoon && "Pollution Expiring Soon "}
-                  {insuranceSoon && "Insurance Expiring Soon "}
-                  {fitnessSoon && "Fitness Expiring Soon "}
-                  {permitSoon && "Permit Expiring Soon "}
-                </TableCell>
-
-                <TableCell>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => navigate(`/edit-vehicle/${v.id}`)}
-                  >
-                    Edit
-                  </Button>{" "}
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() => deleteVehicle(v.id)}
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
+        <TableContainer component={Paper} sx={{ mt: 3, overflowX: "auto" }}>
+          <Table sx={{ mt: 3, minWidth: 900 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: "bold" }}>Vehicle No</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Brand</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Model</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Pollution Expiry</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
               </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+            </TableHead>
+
+            <TableBody>
+              {vehicles.map((v) => {
+                const pollutionExpired = isExpired(v.pollutionExpiry);
+                const insuranceExpired = isExpired(v.insuranceExpiry);
+                const fitnessExpired = isExpired(v.fitnessExpiry);
+                const permitExpired = isExpired(v.permitExpiry);
+
+                const pollutionSoon =
+                  !pollutionExpired && isExpiringSoon(v.pollutionExpiry);
+                const insuranceSoon =
+                  !insuranceExpired && isExpiringSoon(v.insuranceExpiry);
+                const fitnessSoon =
+                  !fitnessExpired && isExpiringSoon(v.fitnessExpiry);
+                const permitSoon = !permitExpired && isExpiringSoon(v.permitExpiry);
+
+                const isAnyExpired =
+                  pollutionExpired ||
+                  insuranceExpired ||
+                  fitnessExpired ||
+                  permitExpired;
+
+                return (
+                  <TableRow
+                    key={v.id}
+                    sx={{
+                      backgroundColor:
+                        pollutionExpired ||
+                          insuranceExpired ||
+                          fitnessExpired ||
+                          permitExpired
+                          ? "#fdecea" // RED for expired
+                          : pollutionSoon ||
+                            insuranceSoon ||
+                            fitnessSoon ||
+                            permitSoon
+                            ? "#fff4e5" // YELLOW for expiring soon
+                            : "inherit",
+                    }}
+                  >
+                    <TableCell>{v.vehicleNumber}</TableCell>
+                    <TableCell>{v.vehicleType}</TableCell>
+                    <TableCell>{v.brand}</TableCell>
+                    <TableCell>{v.model}</TableCell>
+
+                    <TableCell>
+                      {v.pollutionExpiry
+                        ? formatDateMMDDYYYY(
+                          new Date(v.pollutionExpiry).toLocaleDateString()
+                        )
+                        : "-"}
+                    </TableCell>
+
+                    <TableCell>
+                      {pollutionExpired && "Pollution Expired "}
+                      {insuranceExpired && "Insurance Expired "}
+                      {fitnessExpired && "Fitness Expired "}
+                      {permitExpired && "Permit Expired "}
+
+                      {pollutionSoon && "Pollution Expiring Soon "}
+                      {insuranceSoon && "Insurance Expiring Soon "}
+                      {fitnessSoon && "Fitness Expiring Soon "}
+                      {permitSoon && "Permit Expiring Soon "}
+                    </TableCell>
+
+                    <TableCell>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => navigate(`/edit-vehicle/${v.id}`)}
+                      >
+                        Edit
+                      </Button>{" "}
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => deleteVehicle(v.id)}
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
     </div>
   );
 }

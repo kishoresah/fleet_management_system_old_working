@@ -5,6 +5,7 @@
   margin-bottom: 4px;
   display: block;
 }
+
 .success {
   color: green;
   font-size: 12px;
@@ -96,6 +97,7 @@
     width: 100%;
   }
 }
+
 .add-customer-container,
 .page-container {
   width: 100%;
@@ -172,13 +174,14 @@
   color: #fff;
   border: none;
 }
+
 .page-container {
   width: 95%;
   margin: 30px auto;
   background: #fff;
   padding: 25px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .page-container h2 {

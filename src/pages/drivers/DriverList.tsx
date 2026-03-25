@@ -8,6 +8,9 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Box,
+  TableContainer,
+  Paper,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { formatDateMMDDYYYY } from "../../utils";
@@ -60,81 +63,95 @@ export default function DriverList() {
 
   return (
     <div>
-      <BackButton />
-      <Button variant="contained" onClick={() => navigate("/add-driver")}>
-        Add Driver
-      </Button>
+      <Box
+        sx={{
+          overflow: { xs: "hidden", md: "visible" },
+          width: { xs: "85vw", md: "100%" },
+        }}
+      >
+        <Box display={"flex"} justifyContent={"space-between"} alignItems={"baseline"}>
+          <BackButton />
+          <Button variant="contained" onClick={() => navigate("/add-driver")}>
+            Add Driver
+          </Button>
+        </Box>
 
-      <Table sx={{ mt: 3 }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>City</TableCell>
-            <TableCell>Phone</TableCell>
-            <TableCell>State</TableCell>
-            <TableCell>Salary</TableCell>
-            <TableCell>Joining Date</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
+        <TableContainer component={Paper} sx={{ mt: 3, overflowX: "auto" }}>
+          <Table sx={{ mt: 3, minWidth: 900 }}>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: "bold" }}>Name</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>City</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Phone</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>State</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Salary</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Joining Date</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
 
-        <TableBody>
-          {drivers.map((d) => (
-            <TableRow key={d.id}>
-              <TableCell>{d.name}</TableCell>
-              <TableCell>{d.city}</TableCell>
-              <TableCell>{d.phone}</TableCell>
-              <TableCell>{d.state}</TableCell>
-              <TableCell>₹ {d.salary || "-"}</TableCell>
-              <TableCell>
-                {d.joiningDate
-                  ? formatDateMMDDYYYY(
-                      new Date(d.joiningDate).toLocaleDateString(),
-                    )
-                  : "-"}
-              </TableCell>
-              <TableCell>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => navigate(`/edit-driver/${d.id}`)}
-                >
-                  Edit
-                </Button>{" "}
-                <Button
-                  size="small"
-                  color="error"
-                  onClick={() => handleDeleteClick(d.id)}
-                >
-                  Delete
-                </Button>{" "}
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={() => navigate(`/driver-payments/${d.id}`)}
-                >
-                  View Payments
-                </Button>
-                <Button
-                  size="small"
-                  color="primary"
-                  onClick={() => navigate(`/add-driver-payment/${d.id}`)}
-                >
-                  Add Payment
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+            <TableBody>
+              {drivers.map((d) => (
+                <TableRow key={d.id}>
+                  <TableCell>{d.name}</TableCell>
+                  <TableCell>{d.city}</TableCell>
+                  <TableCell>{d.phone}</TableCell>
+                  <TableCell>{d.state}</TableCell>
+                  <TableCell>₹ {d.salary || "-"}</TableCell>
+                  <TableCell>
+                    {d.joiningDate
+                      ? formatDateMMDDYYYY(
+                        new Date(d.joiningDate).toLocaleDateString(),
+                      )
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => navigate(`/edit-driver/${d.id}`)}
+                    >
+                      Edit
+                    </Button>{" "}
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleDeleteClick(d.id)}
+                    >
+                      Delete
+                    </Button>{" "}
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => navigate(`/driver-payments/${d.id}`)}
+                    >
+                      View Payments
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => navigate(`/add-driver-payment/${d.id}`)}
+                    >
+                      Add Payment
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
 
-      <DeleteConfirmModal
-        open={showDeleteModal}
-        title="Delete Driver"
-        message="Are you sure you want to delete this Driver? This action cannot be undone."
-        onConfirm={confirmDeleteDriver}
-        onCancel={cancelDelete}
-      />
+        <DeleteConfirmModal
+          open={showDeleteModal}
+          title="Delete Driver"
+          message="Are you sure you want to delete this Driver? This action cannot be undone."
+          onConfirm={confirmDeleteDriver}
+          onCancel={cancelDelete}
+        />
+      </Box>
     </div>
   );
 }

@@ -102,11 +102,13 @@ export default function CustomerList() {
 
   return (
     <Box sx={{ p: 1 }}>
-      <BackButton />
-      <br></br>
-      <Button variant="contained" onClick={() => navigate("/add-customer")}>
-        Add Customer
-      </Button>
+      <Box display={"flex"} justifyContent={"space-between"} alignItems={"baseline"}>
+        <BackButton />
+        <br></br>
+        <Button variant="contained" onClick={() => navigate("/add-customer")}>
+          Add Customer
+        </Button>
+      </Box>
 
       {/* GLOBAL SEARCH */}
       <Box sx={{ mt: 2 }}>
