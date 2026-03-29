@@ -6,11 +6,13 @@ import {
   doc,
   query,
   orderBy,
+  addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../firebaseConfigTest";
 import { useNavigate } from "react-router-dom";
 import downloadBiltyPDF from "./generatepdfreports";
-import { formatDateMMDDYYYY } from "../../utils";
+import { formatDateMMDDYYYY, formatDateYYYYMMDD } from "../../utils";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import BackButton from "../../components/Back";
 import Box from "@mui/material/Box";
@@ -51,6 +53,44 @@ export default function TripList() {
     loadVehicles();
   }, []);
 
+  const handleDuplicate = async (
+    trip: any,
+    docRefId: string,
+    duplicate: boolean = true,
+  ) => {
+    try {
+      if (duplicate) {
+        if (!window.confirm("Duplicate this trip?")) return;
+        const newTrip = {
+          ...trip,
+          addTripDate: formatDateYYYYMMDD(new Date()),
+          tripExpense: 0,
+          tripCharges: 0,
+          labourCharges: 0,
+          advanceAmount: 0,
+          detentionCharges: 0,
+          tripCommission: 0,
+          specialNotes: "",
+          paymentStatus: "unpaid",
+          invoiceCreated: "no",
+          addedDate: new Date().toLocaleString(),
+          // metadata
+          createdAt: serverTimestamp(),
+        };
+
+        const docRef = await addDoc(collection(db, "dailyTrips"), newTrip);
+
+        // ✅ Redirect to new trip
+        navigate(`/edit-daily-trip/${docRef.id}?mode=duplicate`);
+      } else {
+        navigate(`/edit-daily-trip/${docRefId}?mode=minimal`);
+      }
+    } catch (error) {
+      console.error("Duplicate failed", error);
+      alert("Failed to duplicate trip");
+    }
+  };
+
   const loadTrips = async () => {
     const q = query(
       collection(db, "dailyTrips"),
@@ -81,7 +121,7 @@ export default function TripList() {
     setDeleteTripId(id);
     setShowDeleteModal(true);
   };
-  const handlePushInvoicClick = (id) => { };
+  const handlePushInvoicClick = (id) => {};
 
   const confirmDeleteTrip = async () => {
     try {
@@ -132,8 +172,8 @@ export default function TripList() {
       (filterLorryNo ? t.lorryNo?.includes(filterLorryNo) : true) &&
       (localCustomerName
         ? t.localCustomerName
-          ?.toLowerCase()
-          .includes(localCustomerName.toLowerCase())
+            ?.toLowerCase()
+            .includes(localCustomerName.toLowerCase())
         : true) &&
       isWithinDateRange
     );
@@ -163,23 +203,27 @@ export default function TripList() {
   console.log(vehicles);
   return (
     <div className="page-container">
-      <Box sx={{
-        width: "100%",
-        maxWidth: { xs: "72vw", md: "100%" },
-        overflow: "hidden",
-      }}>
-        <Box sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          flexWrap: "wrap",
-          gap: 1,
-        }}>
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: { xs: "72vw", md: "100%" },
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
           <BackButton />
           <h2 style={{ margin: 0 }}>Daily Trip List</h2>
           <Box
             sx={{
-              order: { xs: 3, md: 0, },
+              order: { xs: 3, md: 0 },
               width: { xs: "100%", md: "auto" },
               marginBottom: { xs: 1, md: 0 },
             }}
@@ -281,7 +325,10 @@ export default function TripList() {
         </div>
         {/* TABLE */}
         <div style={{ overflowX: "auto", width: "100%" }}>
-          <table className="styled-table" style={{ marginTop: "20px", minWidth: "900px" }}>
+          <table
+            className="styled-table"
+            style={{ marginTop: "20px", minWidth: "900px" }}
+          >
             <thead>
               <tr>
                 <th>Trip Date</th>
@@ -326,7 +373,9 @@ export default function TripList() {
                       <td>₹ {t.tripCharges}</td>
                       <td>₹ {t.advanceAmount > 0 ? t.advanceAmount : "0"}</td>
                       <td>₹ {t.tripExpense > 0 ? t.tripExpense : "0"}</td>
-                      <td>₹ {t.detentionCharges > 0 ? t.detentionCharges : "0"}</td>
+                      <td>
+                        ₹ {t.detentionCharges > 0 ? t.detentionCharges : "0"}
+                      </td>
                       <td>₹ {t.labourCharges > 0 ? t.labourCharges : "0"}</td>
                       {/* BILTY BUTTON */}
 
@@ -355,6 +404,27 @@ export default function TripList() {
                             Invoice{" "}
                           </button>
                         )}
+
+                        <button
+                          style={{
+                            marginBottom: "5px",
+                            background: "#1976d2",
+                            color: "#fff",
+                          }}
+                          onClick={() => handleDuplicate(t, t.id, true)}
+                        >
+                          Duplicate
+                        </button>
+                        <button
+                          style={{
+                            marginBottom: "5px",
+                            background: "#1976d2",
+                            color: "#fff",
+                          }}
+                          onClick={() => handleDuplicate(t, t.id, false)}
+                        >
+                          Minimal Update
+                        </button>
                       </td>
                     </tr>
 
@@ -370,14 +440,20 @@ export default function TripList() {
 
               {filteredTrips.length === 0 && (
                 <tr>
-                  <td colSpan={10} style={{ textAlign: "center", padding: "20px" }}>
+                  <td
+                    colSpan={10}
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
                     No trips found
                   </td>
                 </tr>
               )}
 
               <tr>
-                <td colSpan={10} style={{ textAlign: "center", padding: "20px" }}>
+                <td
+                  colSpan={10}
+                  style={{ textAlign: "center", padding: "20px" }}
+                >
                   <div style={{ marginTop: "20px", textAlign: "center" }}>
                     <button
                       disabled={currentPage === 1}

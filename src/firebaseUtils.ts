@@ -31,18 +31,17 @@ export function formatDateMMDDYYYY(
     return `${dd}/${mm}/${yyyy}`;
 }
 
-export function formatDateYYYYMMDD(
-    date: string | Date | null = null
-): string {
-    if (!date) return "";
+export const formatCurrency = (amount?: number | string) => {
+    if (amount === undefined || amount === null || amount === "") return "";
 
-    const d = new Date(date);
-    if (isNaN(d.getTime())) return "";
+    return Number(amount).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+};
 
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const yyyy = d.getFullYear();
-
-    return `${yyyy}/${mm}/${dd}`;
-}
-
+export const toTitleCase = (str = "") => {
+    return str
+        .toLowerCase()
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+};

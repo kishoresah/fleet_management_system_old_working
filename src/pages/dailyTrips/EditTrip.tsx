@@ -11,9 +11,18 @@ import { useNavigate, useParams } from "react-router-dom";
 import TripForm from "./TripForm";
 import BackButton from "../../components/Back";
 
+import { useLocation } from "react-router-dom";
+
 export default function EditDailyTrip() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const location = useLocation();
+  const isDuplicate =
+    new URLSearchParams(location.search).get("mode") === "duplicate" ||
+    new URLSearchParams(location.search).get("mode") === "minimal";
+
+  const mode = new URLSearchParams(location.search).get("mode");
 
   const [customers, setCustomers] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -98,7 +107,7 @@ export default function EditDailyTrip() {
   return (
     <div className="add-customer-container">
       <BackButton />
-      <h2>Edit Daily Trip</h2>
+      <h2>{mode ? mode.toLocaleUpperCase() : "Edit"} Daily Trip</h2>
       <TripForm
         formData={{ ...formData, vehicles }}
         isSubmitting={isSubmitting}
@@ -109,6 +118,7 @@ export default function EditDailyTrip() {
         onVehicleChange={handleVehicleChange}
         onSubmit={handleSubmit}
         submitText="Update Trip"
+        isDuplicate={isDuplicate}
       />
     </div>
   );
