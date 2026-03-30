@@ -121,7 +121,7 @@ export default function TripList() {
     setDeleteTripId(id);
     setShowDeleteModal(true);
   };
-  const handlePushInvoicClick = (id) => {};
+  const handlePushInvoicClick = (id) => { };
 
   const confirmDeleteTrip = async () => {
     try {
@@ -172,8 +172,8 @@ export default function TripList() {
       (filterLorryNo ? t.lorryNo?.includes(filterLorryNo) : true) &&
       (localCustomerName
         ? t.localCustomerName
-            ?.toLowerCase()
-            .includes(localCustomerName.toLowerCase())
+          ?.toLowerCase()
+          .includes(localCustomerName.toLowerCase())
         : true) &&
       isWithinDateRange
     );
@@ -219,7 +219,7 @@ export default function TripList() {
             gap: 1,
           }}
         >
-          <BackButton />
+          <BackButton className="primary-blue-btn" />
           <h2 style={{ margin: 0 }}>Daily Trip List</h2>
           <Box
             sx={{
@@ -228,14 +228,14 @@ export default function TripList() {
               marginBottom: { xs: 1, md: 0 },
             }}
           >
-            <button onClick={() => navigate("/add-daily-trip")}>
+            <button onClick={() => navigate("/add-daily-trip")} className="primary-blue-btn">
               + Add Daily Trip
             </button>
           </Box>
         </Box>
-        <button onClick={() => clearFilters()}>Clear Filters</button>
+        <button onClick={() => clearFilters()} className="primary-grey-btn m-2px">Clear Filters</button>
         &nbsp;&nbsp;&nbsp;&nbsp;
-        <button onClick={() => downloadBiltyPDF(filteredTrips, customers)}>
+        <button onClick={() => downloadBiltyPDF(filteredTrips, customers)} className="primary-green-btn m-2px">
           Download Trips PDF
         </button>
         {/* FILTERS */}
@@ -250,6 +250,7 @@ export default function TripList() {
         >
           <select
             value={filterCustomer}
+            className="form-styled-input-primary"
             onChange={(e) => setFilterCustomer(e.target.value)}
           >
             <option value="">Filter by Customer</option>
@@ -269,12 +270,14 @@ export default function TripList() {
 
           <input
             type="text"
+            className="form-styled-input-primary"
             placeholder="Local Customer"
             value={localCustomerName}
             onChange={(e) => setLocalCustomerName(e.target.value)}
           />
 
           <select
+            className="form-styled-input-primary"
             value={filterVehicles}
             onChange={(e) => setFilterVehicles(e.target.value)}
           >
@@ -288,6 +291,7 @@ export default function TripList() {
 
           <select
             value={filterDriver}
+            className="form-styled-input-primary"
             onChange={(e) => setFilterDriver(e.target.value)}
           >
             <option value="">Filter by Driver</option>
@@ -300,6 +304,7 @@ export default function TripList() {
 
           <input
             type="text"
+            className="form-styled-input-primary"
             placeholder="Lorry No"
             value={filterLorryNo}
             onChange={(e) => setFilterLorryNo(e.target.value)}
@@ -311,6 +316,7 @@ export default function TripList() {
         >
           <input
             type="date"
+            className="form-styled-input-primary"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
             placeholder="From date"
@@ -318,6 +324,7 @@ export default function TripList() {
 
           <input
             type="date"
+            className="form-styled-input-primary"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
             placeholder="To date"

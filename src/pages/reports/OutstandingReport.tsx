@@ -66,7 +66,7 @@ Phone: +91-9540670670`;
         maxWidth: { xs: "72vw", md: "100%" },
         overflow: "hidden",
       }}>
-        <BackButton />
+        <BackButton className="primary-blue-btn" />
         <h2>Outstanding Payments Report</h2>
         <div style={{ overflowX: "auto", width: "100%" }}>
           <table className="styled-table" style={{ minWidth: "900px" }}>

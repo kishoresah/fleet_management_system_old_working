@@ -49,7 +49,7 @@ const AddDriver: React.FC = () => {
 
   return (
     <div className="add-customer-container">
-      <BackButton />
+      <BackButton className="primary-blue-btn" />
       <h2>Add Driver</h2>
       <DriverForm
         formData={formData}

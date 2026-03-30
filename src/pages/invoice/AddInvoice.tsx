@@ -132,7 +132,7 @@ const AddInvoice = () => {
 
   return (
     <div>
-      <BackButton />
+      <BackButton className="primary-blue-btn" />
       <h2>Create Invoice</h2>
       <InvoiceForm
         formData={formData}

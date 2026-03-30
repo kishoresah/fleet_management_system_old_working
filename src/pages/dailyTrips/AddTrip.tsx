@@ -155,7 +155,7 @@ export default function AddDailyTrip() {
 
   return (
     <div className="add-customer-container">
-      <BackButton to="/trip-list" />
+      <BackButton to="/trip-list" className="primary-blue-btn" />
       <h2>Add Daily Trip</h2>
 
       <TripForm

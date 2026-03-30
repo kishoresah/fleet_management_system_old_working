@@ -92,7 +92,7 @@ const AddCustomer: React.FC = () => {
         p: 1,
       }}
     >
-      <BackButton />
+      <BackButton className="primary-blue-btn" />
       <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
         Add Customer
       </Typography>

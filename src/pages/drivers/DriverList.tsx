@@ -70,7 +70,7 @@ export default function DriverList() {
         }}
       >
         <Box display={"flex"} justifyContent={"space-between"} alignItems={"baseline"}>
-          <BackButton />
+          <BackButton className="primary-blue-btn" />
           <Button variant="contained" onClick={() => navigate("/add-driver")}>
             Add Driver
           </Button>

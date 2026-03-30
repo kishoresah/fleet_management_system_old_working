@@ -103,7 +103,7 @@ export default function CustomerList() {
   return (
     <Box sx={{ p: 1 }}>
       <Box display={"flex"} justifyContent={"space-between"} alignItems={"baseline"}>
-        <BackButton />
+        <BackButton className="primary-blue-btn" />
         <br></br>
         <Button variant="contained" onClick={() => navigate("/add-customer")}>
           Add Customer

@@ -55,24 +55,23 @@ const InvoiceForm: React.FC<Props> = ({
       .map((t) => ({
         description: `Trip on ${formatDateMMDDYYYY(t.addTripDate)} —{" "}
                           ${t.fromLocation} to ${t.toLocation}{" "}
-                          ${
-                            t.tripCharges
-                              ? "— ₹" +
-                                Number(t.tripCharges) +
-                                " — " +
-                                Number(t.tripExpense) +
-                                " — " +
-                                Number(t.labourCharges) +
-                                " — " +
-                                Number(t.detentionCharges) +
-                                " — Advance Amount" +
-                                Number(t.advanceAmount) +
-                                " — " +
-                                t.vehicleNumber +
-                                " — " +
-                                t.specialNotes
-                              : ""
-                          }`,
+                          ${t.tripCharges
+            ? "— ₹" +
+            Number(t.tripCharges) +
+            " — " +
+            Number(t.tripExpense) +
+            " — " +
+            Number(t.labourCharges) +
+            " — " +
+            Number(t.detentionCharges) +
+            " — Advance Amount" +
+            Number(t.advanceAmount) +
+            " — " +
+            t.vehicleNumber +
+            " — " +
+            t.specialNotes
+            : ""
+          }`,
         quantity: 1,
         price:
           Number(t.tripCharges) +
@@ -82,10 +81,10 @@ const InvoiceForm: React.FC<Props> = ({
         advanceAmount: t.advanceAmount ? t.advanceAmount : 0,
         total: t.tripCharges
           ? Number(t.tripCharges) +
-            Number(t.tripExpense) +
-            Number(t.labourCharges) -
-            Number(t.advanceAmount) +
-            Number(t.detentionCharges)
+          Number(t.tripExpense) +
+          Number(t.labourCharges) -
+          Number(t.advanceAmount) +
+          Number(t.detentionCharges)
           : 0,
         tripId: t.id,
       }));

@@ -113,12 +113,12 @@ Phone: +91-9540670670`;
       }}>
 
         <Box display={"flex"} justifyContent={"space-between"} alignItems={"baseline"}>
-          <BackButton />
+          <BackButton className="primary-blue-btn" />
           <h2>Invoices</h2>
           {/* <Button variant="contained" color="success" onClick={() => navigate("/add-invoice")}>
           + Add Invoice
         </Button> */}
-          <button onClick={() => navigate("/add-invoice")}>+ Add Invoice</button>
+          <button onClick={() => navigate("/add-invoice")} className="primary-blue-btn">+ Add Invoice</button>
         </Box>
 
         <div style={{ overflowX: "auto", width: "100%" }}>

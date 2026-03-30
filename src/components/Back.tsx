@@ -27,7 +27,7 @@ const BackButton = ({
       }}
       className={className}
     >
-      ← {label}
+      {`< ` + label}
     </button>
   );
 };
